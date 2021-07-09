@@ -10,5 +10,16 @@ Metabarcoding is done for 3 markers (12S MiFish, 12S MiMammal, COI Leray). Seque
 
 We will try to measure the change in communities (via 3 markers) between upstream and downstream of the barriers, while also accounting for communities changing over time (seasonally). 
 
+## How to use this repo 
+
+The data folder has: raw fastq files separated by sequencing run (usually one sequencing run is one month's worth of samples), field metadata for the creeks (temperature, time, DO, turbidity), metadata for the sequencing runs (sample, Nextera index, primer etc.)
+
+The functions folder has commonly used functions in R for eDNA analysis. 
+
+The preannotation folder has scripts that take in the raw fastq files and provides as ASV table (not annotated). Note: this also merges ASVs from multiple runs. 
+
+The annotation folder has scripts that take in the ASV table for each marker and annotates ASVs to taxa. 
+
+The analysis folder includes scripts to perform analyses at both the ASV and taxon level. It also plots metadata. 
 
 
