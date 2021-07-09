@@ -8,5 +8,7 @@ We are interested in the impact of the actual construction on the aquatic commun
 
 Metabarcoding is done for 3 markers (12S MiFish, 12S MiMammal, COI Leray). Sequencing will be done on an Illumina MiSeq using Nextera UD indices. Sequencing runs will (for the most part) be conducted by month. At each station, triplicate water samples are taken. One technical PCR replicate is performed for each biological replicate. However, on each sequencing run, one sample (one biological replicate of one station) is sequenced with three PCR replicates. Also on each sequencing run, one sample from the previous month's sequencing run is run again to quantify run-to-run variability between sequencing runs. The technical replicate and sequencing run replicates added to each sequencing run are done for each marker. 
 
-Main question: Do aquatic communities differ upstream and downstream of 
+We will try to measure the change in communities (via 3 markers) between upstream and downstream of the barriers, while also accounting for communities changing over time (seasonally). 
+
+
 
