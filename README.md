@@ -22,4 +22,6 @@ The annotation folder has scripts that take in the ASV table for each marker and
 
 The analysis folder includes scripts to perform analyses at both the ASV and taxon level. It also plots metadata. 
 
+The figures folder is where figures generated in various scripts are stored. 
+
 
