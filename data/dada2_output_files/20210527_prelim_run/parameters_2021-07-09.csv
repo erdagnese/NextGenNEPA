@@ -1,0 +1,8 @@
+Parameters,Values
+hash,TRUE
+trimming.length.Read1,200
+trimming.length.Read2,200
+keep.mid.files,TRUE
+folder,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA/data/fastq_files/20200527_prelim_run/
+output.folder,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA/data/dada2_output_files/20200527_prelim_run
+metadata,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA/data/sequencing_metadata_files/metadata-all-2021-06-01.csv
