@@ -1,2 +1,31 @@
+---
+title: "From CRUX to insect"
+output: html_notebook
+---
+
+The idea is to get the sequences from the database CRUX has done to s
+```{r libraries}
+library (tidyverse)
+library (here)
+library (insect)
+library (taxonomizr)
+```
+
+# 1. Load the fasta file and the insect version of ncbi taxonomy
+
+```{r data}
+
+Seqs <- readFASTA(here("analysis", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Global_.fasta"))
+
+lineages <- read_delim(here("analysis", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Global_taxonomy.txt"), col_names = c("Accession", "lineage"), delim = "\t" )
+
+lineages %>% 
+  separate (lineage, sep = ";", into = LETTERS[1:7]) %>% 
+  select (Accession, last.term = G) -> Conversion.df
+
+```
+
+
+
 # Create classifier 
 
