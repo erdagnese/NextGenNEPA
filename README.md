@@ -31,30 +31,30 @@ NOTE: add paths to scripts and inputs
 # Scripts used
 cutadapt.wrapper.Rmd
 
-# Input
+### Input
 - Raw fasta files from sequencer. 
 - Metadata file with sample name, Nextera index, PCR primer sequences 
 
-# Process
+### Process
 Read in raw fasta files and use cutadapt script to remove Nextera indices and PCR primers. (See https://github.com/ramongallego/Nextera_Dada2)
 
-# Output
+### Output
 - fasta files with primers removed
 
 ## 2. Dada2: quality control and  convert reads to AVS
 # Scripts used
 dada2.Rmd
 
-# Input
+### Input
 - fasta files with primers removed
 - need to decide on how much to trim off based on quality score plot! 
 - 
 
-# Process
+### Process
 Use dada2 to trim reads based on quality scores, merge paired end reads, and make ASVs (using hashes) from reads. (See https://github.com/ramongallego/Nextera_Dada2)  
 
 
-# Output
+### Output
 - ASV table (Hash, Sample, nReads)
 - Hash key - csv (Hash, Sequence)
 - Hash key - fasta
@@ -62,58 +62,58 @@ Use dada2 to trim reads based on quality scores, merge paired end reads, and mak
 ## 3a. Build classifier for each locus.
 NOTE: only do this one time - after that, just add to it
 
-# Scripts used
+### Scripts used
 
-# Input
+### Input
 - CRUX fasta file 
 - CRUX taxonomy file 
 
-# Process
+### Process
 
-# Output
+### Output
 
 
 ## 3b. Add to classifiers 
 NOTE: hopefully don't need to rebuild tree
 
-# Scripts used
-# Input
-# Process
-# Output
+### Scripts used
+### Input
+### Process
+### Output
 
 ## 4. Annotate ASVs for each locus 
 
-# Scripts used
-# Input
+### Scripts used
+### Input
 
 
-# Process
+### Process
 
 
-# Output
+### Output
 - taxon table (taxa as rows, samples as columns, values are number of reads)
 - 
 
-## DO WE WANT TO HAVE A STEP WHERE WE MERGE DATA FROM MULTIPLE LOCI? 
+### DO WE WANT TO HAVE A STEP WHERE WE MERGE DATA FROM MULTIPLE LOCI? 
 
 ## 5. Exploratory plotting and data analysis  
 
-# Scripts used
-# Input
-# Process
-# Output
+### Scripts used
+### Input
+### Process
+### Output
 
 ## 6. Convert from number of reads to amount of DNA (or ratio of target DNA to total DNA?)
 NOTE: this is going to be taxon specific because of amplification efficiencies? 
 
-# Scripts used
-# Input
+### Scripts used
+### Input
 - estimates of all parameters (amplification efficiency, )
 - taxon table (taxa as rows, samples as columns, values are number of reads)
 
-# Process
+### Process
 
-# Output
+### Output
 - csv: taxa as rows, samples as columns, values are ratios of target DNA / total DNA? 
 
 ## 7a. ANALYSIS: upstream/downstream of culvert  
@@ -121,10 +121,10 @@ NOTE: this is from our "big think" session 1 - where we have sets of paired upst
 
 NOTE: do we want to do this per marker, or on some dataset that is a merged multiple locus dataset? 
 
-# Scripts used
-# Input
-# Process
-# Output
+### Scripts used
+### Input
+### Process
+### Output
 
 ## 7b. ANALYSIS: per species time series analysis / modeling vs. reality 
 NOTE: this is from our "big think" session 1 idea #2 and the entire topic of our "big think" session 2. 
@@ -133,14 +133,14 @@ NOTE: we are modeling the ratio of target DNA to the ratio of total DNA - we are
 
 NOTE: we are going to need to make different models for different species (or types of species) - probably best to start everything with a random walk for the equation relating time points in the process model and then see if we can improve it (for example with an exponential function)
 
-# Scripts used
-# Input
-# Process
-# Output
+### Scripts used
+### Input
+### Process
+### Output
 
 ## 7c. ANALYSIS: ancom or something similar?
 
-# Scripts used
-# Input
-# Process
-# Output
+### Scripts used
+### Input
+### Process
+### Output
