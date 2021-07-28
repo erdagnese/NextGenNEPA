@@ -43,6 +43,11 @@ Scripts include:
 ## Output
 Output of various scripts. 
 
+Subfolders for: 
+- cutadapt output
+- dada2 output
+- classification output
+
 ## Manuscript
 All files for the manuscript.
 

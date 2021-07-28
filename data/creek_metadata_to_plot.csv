@@ -43,3 +43,14 @@ Chuckanut,downstream,11,6,2021,12:15,5.74,11.16,14.45,36
 Chuckanut,upstream,11,6,2021,12:30,5.62,11.58,15.01,31
 Barnes,downstream,11,6,2021,11:15,5.34,11.71,14.32,38
 Barnes,upstream,11,6,2021,11:45,5.34,10.36,14.46,44
+Portage,downstream,12,7,2021,9:30,4.97,12.91,0.44,53
+Portage,upstream,12,7,2021,9:45,4.89,12.67,0.81,53
+Barnes,downstream,12,7,2021,10:45,5.73,14.87,,38
+Barnes,upstream,12,7,2021,11:00,5.7,13.06,,46
+Chuckanut,downstream,12,7,2021,11:30,6.2,14.94,2.23,75
+Chuckanut,upstream,12,7,2021,12:00,6.51,15.66,2.68,61
+Padden,downstream,12,7,2021,13:00,6.87,22.61,,75
+Padden,upstream_11,12,7,2021,13:15,6.9,16.7,,74
+Padden,upstream_5,12,7,2021,13:45,7.02,16.34,2.65,55
+Squalicum,downstream,12,7,2021,14:30,7.06,15.83,2.62,108
+Squalicum,upstream,12,7,2021,14:45,6.91,15.6,,69
