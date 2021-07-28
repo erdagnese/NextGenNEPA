@@ -6,33 +6,56 @@ Samples are taken monthly for a year at 5 creeks (2 stations per creek except 1 
 
 We are interested in the impact of the actual construction on the aquatic communities. Padden Creek is the creek actively under construction. The monthly time series will capture before, during, and after the restoration of the lower blockage (SR11). The other four creeks are "control" creeks: 3 of which are currently considered as having a blockage (Squalicum Creek, Chuckanut Creek, and Barnes Creek), and 1 of which was previously restored (Portage Creek). 
 
-Metabarcoding is done for 3 markers (12S MiFish, 12S MiMammal, COI Leray). Sequencing will be done on an Illumina MiSeq using Nextera UD indices. Sequencing runs will (for the most part) be conducted by month. At each station, triplicate water samples are taken. One technical PCR replicate is performed for each biological replicate. However, on each sequencing run, one sample (one biological replicate of one station) is sequenced with three PCR replicates. Also on each sequencing run, one sample from the previous month's sequencing run is run again to quantify run-to-run variability between sequencing runs. The technical replicate and sequencing run replicates added to each sequencing run are done for each marker. 
+Metabarcoding is done for 3 markers (12S MiFish, 12S MiMammal, COI Leray). Sequencing will be done on an Illumina MiSeq using Nextera UD indices. Sequencing runs will (for the most part) be in sets of three months worth of samples randomized over three runs. At each station, triplicate water samples are taken. One technical PCR replicate is performed for each biological replicate. However, on each sequencing run, one sample (one biological replicate of one station) is sequenced with three PCR replicates. The technical replicates and one positive control (kangaroo) for each marker are added to each sequencing run. 
 
 We will try to measure the change in communities (via 3 markers) between upstream and downstream of the barriers, while also accounting for communities changing over time (seasonally). 
 
-## How to use this repo 
+# Organization of files in this repo  
+This repo has folders for: data, functions, scripts, output, and the manuscript.  
 
-The data folder has: raw fastq files separated by sequencing run (usually one sequencing run is one month's worth of samples), field metadata for the creeks (temperature, time, DO, turbidity), metadata for the sequencing runs (sample, Nextera index, primer etc.)
 
+## Data
+The data folder has sequencing data and supporting metadata files required for running different scripts.
+
+Files include: 
+- raw fastq files separated by sequencing run (usually one sequencing run is one month's worth of samples)
+- field metadata for the creeks (temperature, time, DO, turbidity)
+- metadata for the sequencing runs (sample, Nextera index, primer etc.)
+
+## Functions
 The functions folder has commonly used functions in R for eDNA analysis. 
 
-The preannotation folder has scripts that take in the raw fastq files and provides as ASV table (not annotated). Note: this also merges ASVs from multiple runs. 
+Functions include: 
+-
 
-The annotation folder has scripts that take in the ASV table for each marker and annotates ASVs to taxa. 
+## Scripts
+There are many types of scripts in this repo. We have attempted to make the names informative. For the order of operations, see the next section, "How to use this repo: step by step order of operations". 
 
-The analysis folder includes scripts to perform analyses at both the ASV and taxon level. It also plots metadata. 
+Scripts include: 
+- fastqs_to_asvs.Rmd (takes in fastq files, uses cutadapt to remove primers, uses dada2 to trim and form ASVs)
+- create_classifiers.Rmd (makes initial classifiers for each locus)
+- update_classifiers.Rmd (updates initial classifiers to add new things found)
+- merge_multiple_runs.Rmd (merges ASVs/samples from multiple sequencing runs)
+- asvs_to_taxa.Rmd (takes in ASVs and assigns taxonomy)
+- reads_to_dna.Rmd (takes reads - either as ASVs or taxa - and converts to DNA for each ASV/taxa)
+- pairwise_cuvlert.Rmd (compares up/down community at each culvert for each month)
 
-The figures folder is where figures generated in various scripts are stored. 
+## Output
+Output of various scripts. 
+
+## Manuscript
+All files for the manuscript.
 
 
+# How to use this repo: step by step order of operations
 NOTE: add paths to scripts and inputs
 
 ## 1. Remove primers from sequences
-# Scripts used
+### Scripts used
 cutadapt.wrapper.Rmd
 
 ### Input
-- Raw fasta files from sequencer. 
+- Raw fasta files from sequencer (folder with two .fastq files per sample - R1 and R2 - not zipped) 
 - Metadata file with sample name, Nextera index, PCR primer sequences 
 
 ### Process
