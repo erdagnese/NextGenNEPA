@@ -10,11 +10,11 @@ Metabarcoding is done for 3 markers (12S MiFish, 12S MiMammal, COI Leray). Seque
 
 We will try to measure the change in communities (via 3 markers) between upstream and downstream of the barriers, while also accounting for communities changing over time (seasonally). 
 
-# Organization of files in this repo  
+## Organization of files in this repo  
 This repo has folders for: data, functions, scripts, output, and the manuscript.  
 
 
-## Data
+### Data
 The data folder has sequencing data and supporting metadata files required for running different scripts.
 
 Files include: 
@@ -22,13 +22,14 @@ Files include:
 - field metadata for the creeks (temperature, time, DO, turbidity)
 - metadata for the sequencing runs (sample, Nextera index, primer etc.)
 
-## Functions
+### Functions
 The functions folder has commonly used functions in R for eDNA analysis. 
 
 Functions include: 
--
+- eDNAindex.R
+- asv.matrix.R 
 
-## Scripts
+### Scripts
 There are many types of scripts in this repo. We have attempted to make the names informative. For the order of operations, see the next section, "How to use this repo: step by step order of operations". 
 
 Scripts include: 
@@ -40,7 +41,7 @@ Scripts include:
 - reads_to_dna.Rmd (takes reads - either as ASVs or taxa - and converts to DNA for each ASV/taxa)
 - pairwise_cuvlert.Rmd (compares up/down community at each culvert for each month)
 
-## Output
+### Output
 Output of various scripts. 
 
 Subfolders for: 
@@ -48,130 +49,130 @@ Subfolders for:
 - dada2 output
 - classification output
 
-## Manuscript
+### Manuscript
 All files for the manuscript.
 
 
-# How to use this repo: step by step order of operations
+## How to use this repo: step by step order of operations
 NOTE: add paths to scripts and inputs
 
-## 1. Remove primers from sequences
-### Scripts used
+### 1. Remove primers from sequences
+#### Scripts used
 cutadapt.wrapper.Rmd
 
-### Input
+#### Input
 - Raw fasta files from sequencer (folder with two .fastq files per sample - R1 and R2 - not zipped) 
 - Metadata file with sample name, Nextera index, PCR primer sequences 
 
-### Process
+#### Process
 Read in raw fasta files and use cutadapt script to remove Nextera indices and PCR primers. (See https://github.com/ramongallego/Nextera_Dada2)
 
-### Output
+#### Output
 - fasta files with primers removed
 
-## 2. Dada2: quality control and  convert reads to AVS
-# Scripts used
+### 2. Dada2: quality control and  convert reads to AVS
+#### Scripts used
 dada2.Rmd
 
-### Input
+#### Input
 - fasta files with primers removed
 - need to decide on how much to trim off based on quality score plot! 
 - 
 
-### Process
+#### Process
 Use dada2 to trim reads based on quality scores, merge paired end reads, and make ASVs (using hashes) from reads. (See https://github.com/ramongallego/Nextera_Dada2)  
 
 
-### Output
+#### Output
 - ASV table (Hash, Sample, nReads)
 - Hash key - csv (Hash, Sequence)
 - Hash key - fasta
 
-## 3a. Build classifier for each locus.
+### 3a. Build classifier for each locus.
 NOTE: only do this one time - after that, just add to it
 
-### Scripts used
+#### Scripts used
 
-### Input
+#### Input
 - CRUX fasta file 
 - CRUX taxonomy file 
 
-### Process
+#### Process
 - Get TaxIDs from NCBI for the accession numbers
 - Build file with accession and TaxID for insect
 - Build classifier with insect on cluster
 
-### Output
+#### Output
 - (locus)_classifier.rds
 
-## 3b. Add to classifiers 
+### 3b. Add to classifiers 
 NOTE: hopefully don't need to rebuild tree
 
-### Scripts used
-### Input
-### Process
-### Output
+#### Scripts used
+#### Input
+#### Process
+#### Output
 
-## 4. Annotate ASVs for each locus 
+### 4. Annotate ASVs for each locus 
 
-### Scripts used
-### Input
-
-
-### Process
+#### Scripts used
+#### Input
 
 
-### Output
+#### Process
+
+
+#### Output
 - taxon table (taxa as rows, samples as columns, values are number of reads)
 - 
 
-### DO WE WANT TO HAVE A STEP WHERE WE MERGE DATA FROM MULTIPLE LOCI? 
+#### DO WE WANT TO HAVE A STEP WHERE WE MERGE DATA FROM MULTIPLE LOCI? 
 
-## 5. Exploratory plotting and data analysis  
+### 5. Exploratory plotting and data analysis  
 
-### Scripts used
-### Input
-### Process
-### Output
+#### Scripts used
+#### Input
+#### Process
+#### Output
 
-## 6. Convert from number of reads to amount of DNA (or ratio of target DNA to total DNA?)
+### 6. Convert from number of reads to amount of DNA (or ratio of target DNA to total DNA?)
 NOTE: this is going to be taxon specific because of amplification efficiencies? 
 
-### Scripts used
-### Input
+#### Scripts used
+#### Input
 - estimates of all parameters (amplification efficiency, )
 - taxon table (taxa as rows, samples as columns, values are number of reads)
 
-### Process
+#### Process
 
-### Output
+#### Output
 - csv: taxa as rows, samples as columns, values are ratios of target DNA / total DNA? 
 
-## 7a. ANALYSIS: upstream/downstream of culvert  
+### 7a. ANALYSIS: upstream/downstream of culvert  
 NOTE: this is from our "big think" session 1 - where we have sets of paired upstream/downstream and plot distributions of some distance metric and see if Padden during construction drops out. 
 
 NOTE: do we want to do this per marker, or on some dataset that is a merged multiple locus dataset? 
 
-### Scripts used
-### Input
-### Process
-### Output
+#### Scripts used
+#### Input
+#### Process
+#### Output
 
-## 7b. ANALYSIS: per species time series analysis / modeling vs. reality 
+### 7b. ANALYSIS: per species time series analysis / modeling vs. reality 
 NOTE: this is from our "big think" session 1 idea #2 and the entire topic of our "big think" session 2. 
 
 NOTE: we are modeling the ratio of target DNA to the ratio of total DNA - we are ignoring water flow and going to abundance 
 
 NOTE: we are going to need to make different models for different species (or types of species) - probably best to start everything with a random walk for the equation relating time points in the process model and then see if we can improve it (for example with an exponential function)
 
-### Scripts used
-### Input
-### Process
-### Output
+#### Scripts used
+#### Input
+#### Process
+#### Output
 
-## 7c. ANALYSIS: ancom or something similar?
+### 7c. ANALYSIS: ancom or something similar?
 
-### Scripts used
-### Input
-### Process
-### Output
+#### Scripts used
+#### Input
+#### Process
+#### Output
