@@ -69,9 +69,12 @@ NOTE: only do this one time - after that, just add to it
 - CRUX taxonomy file 
 
 ### Process
+- Get TaxIDs from NCBI for the accession numbers
+- Build file with accession and TaxID for insect
+- Build classifier with insect on cluster
 
 ### Output
-
+- (locus)_classifier.rds
 
 ## 3b. Add to classifiers 
 NOTE: hopefully don't need to rebuild tree
