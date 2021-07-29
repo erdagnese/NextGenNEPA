@@ -18,9 +18,13 @@ This repo has folders for: data, functions, scripts, output, and the manuscript.
 The data folder has sequencing data and supporting metadata files required for running different scripts.
 
 Files include: 
-- raw fastq files separated by sequencing run (usually one sequencing run is one month's worth of samples)
+- raw fastq files separated by sequencing run (usually one sequencing run is one month's worth of samples) **too big to house on github
 - field metadata for the creeks (temperature, time, DO, turbidity)
 - metadata for the sequencing runs (sample, Nextera index, primer etc.)
+
+### Input
+Files include:
+- CRUX databases for each marker used to make classifiers for annotating ASVs
 
 ### Functions
 The functions folder has commonly used functions in R for eDNA analysis. 
@@ -61,7 +65,7 @@ NOTE: add paths to scripts and inputs
 fastqs_to_asvs.Rmd
 
 #### Input
-- Raw fasta files from sequencer (folder with two .fastq files per sample - R1 and R2 - not zipped) 
+- Raw fasta files from sequencer (folder with two .fastq files per sample - R1 and R2 - not zipped) **too big to house on github
 - Metadata file with sample name, Nextera index, PCR primer sequences 
 
 #### Process
