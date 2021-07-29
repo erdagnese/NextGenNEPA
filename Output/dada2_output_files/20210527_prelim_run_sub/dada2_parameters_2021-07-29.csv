@@ -1,8 +1,0 @@
-Parameters,Values
-folder,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA/Data/fastq_files/20210527_prelim_run_sub/noprimers
-hash,TRUE
-trimming.length.Read1,200
-trimming.length.Read2,200
-metadata,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA/Output/cutadapt_output_files/20210527_prelim_run_sub/noprimers/output.metadata.csv
-output.folder,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA/Output/dada2_output_files/20210527_prelim_run_sub
-keep.mid.files,TRUE
