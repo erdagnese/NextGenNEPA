@@ -58,7 +58,7 @@ NOTE: add paths to scripts and inputs
 
 ### 1. Remove primers from sequences
 #### Scripts used
-cutadapt.wrapper.Rmd
+fastqs_to_asvs.Rmd
 
 #### Input
 - Raw fasta files from sequencer (folder with two .fastq files per sample - R1 and R2 - not zipped) 
@@ -72,16 +72,14 @@ Read in raw fasta files and use cutadapt script to remove Nextera indices and PC
 
 ### 2. Dada2: quality control and  convert reads to AVS
 #### Scripts used
-dada2.Rmd
+fastqs_to_asvs.Rmd (same as step 1)
 
 #### Input
 - fasta files with primers removed
 - need to decide on how much to trim off based on quality score plot! 
-- 
 
 #### Process
 Use dada2 to trim reads based on quality scores, merge paired end reads, and make ASVs (using hashes) from reads. (See https://github.com/ramongallego/Nextera_Dada2)  
-
 
 #### Output
 - ASV table (Hash, Sample, nReads)
@@ -164,6 +162,8 @@ NOTE: this is from our "big think" session 1 idea #2 and the entire topic of our
 NOTE: we are modeling the ratio of target DNA to the ratio of total DNA - we are ignoring water flow and going to abundance 
 
 NOTE: we are going to need to make different models for different species (or types of species) - probably best to start everything with a random walk for the equation relating time points in the process model and then see if we can improve it (for example with an exponential function)
+
+NOTE: this is going to need to happen in STAN 
 
 #### Scripts used
 #### Input

@@ -1,0 +1,2 @@
+folder,metadata,outputfolder,minlength
+/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA/Data/fastq_files/20210527_prelim_run,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA/Data/sequencing_metadata_files/20210527_prelim_run_metadata_sub.csv,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA/Output/cutadapt_output_files/20210527_prelim_run_sub,100

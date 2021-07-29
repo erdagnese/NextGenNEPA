@@ -1,0 +1,101 @@
+---
+title: "fastqs_to_asvs"
+author: "Eily Allan"
+date: "7/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Fastqs to ASVs - Overview
+
+This script takes in raw fastq files from a MiSeq sequencing run and uses cutadapt to remove primers and dada2 to trim reads based on quality scores, merge paired end reads, and make ASVs (using hashes) from reads. (This was really done by Ramon Gallego - see  https://github.com/ramongallego/Nextera_Dada2 -- we have just rearranged it and tweaked it for our purposes.)
+
+This is designed to work with sequencing data that has been prepared by using dual-indexed primers (link) and sequencing runs that have multiple markers on the same run.
+
+Let's load some libraries we will need:
+```{r}
+library(tidyverse)
+library(here)
+```
+
+## Step 1: Remove indices and primers from fastq files. 
+
+First, we will use cutadapt to remove the Nextera indices and PCR primers so we are only left with fasta files of our fragment(s) of interest. 
+
+We need the following inputs: 
+- path to folder where the fastq files live 
+- a csv with the information about the Nextera index and the PCR marker for each sample - these are the MINIMUM requirements (more columns are ok)
+        - Sample_name - The name that makes sense to you and your project (No spaces in the name would be better)
+        - Locus: The name of the locus you want to use (e.g. Leray_COI)
+        - PrimerF: The nucleotide sequence of the forward primer - supports IUPAC characters 
+        - PrimerR: Ditto for the reverse primer (also in 5' -> 3' direction)
+        - file1: it should match exactly the output of the Miseq.
+        - file2: Same for the second read.
+
+We also need to specify where we want the output to go:
+- path to folder where the output will go, which will include:
+        - a subfolder that includes the trimmed fasta files 
+        - a csv with the parameters used in cutadapt
+
+Finally, we need to tell cutadapt:
+- the minimum length to trim
+
+
+Let's start by setting paths for inputs/outputs and creating the parameter file:
+```{r}
+
+# paths for inputs/outputs
+path_input_fastas <- here("Data","fastq_files","20210527_prelim_run")
+path_input_metadata <- here("Data","sequencing_metadata_files","20210527_prelim_run_metadata_sub.csv")
+path_output_folder <- here("Output","cutadapt_output_files","20210527_prelim_run_sub")
+
+# set minimum length to trim
+input_min_trim_length <- 100
+
+# write these all as parameters
+params = list(
+  folder = path_input_fastas,
+  metadata = path_input_metadata, 
+  outputfolder = path_output_folder,
+  minlength = input_min_trim_length)
+
+# create directory where outputs (cleaned fasta files and csv of parameters) will go
+dir.create(params$outputfolder)
+
+# create parameter output file 
+tibble(values = as.character(params), names = as.character(names(params))) %>% 
+  pivot_wider(names_from = names,
+              values_from = values) %>%
+  select(folder, metadata, outputfolder, minlength) %>% 
+write_csv( here("Output","cutadapt_output_files","20210527_prelim_run_sub","cutadapt_params.txt") )
+
+```
+
+If everything looks good (double check the metadata file columns), then go ahead and start. We actually aren't using cutadapt in R - instead we are passing the parameters from the metadata file into a bash script. In other words, this is a wrapper for cutadapt.
+
+This means that we need to have the following shell script in our file path "test.bash.sh"
+
+Let's check the version of cutadapt we are using. 
+```{bash}
+cutadapt --version
+
+# if this doesn't work (command not found), use the following:
+# old_path <- Sys.getenv("PATH")
+# Sys.setenv(PATH = paste(old_path, "/Users/elizabethandruszkiewicz/opt/anaconda2/bin/", sep = ":"))
+
+```
+
+Next we will actually push the parameters to the bash script that runs cutadapt.
+```{bash}
+bash test.bash.sh cutadapt_params.txt
+```
+
+## Step 2: dada2
+
+
+```{r}
+plot(pressure)
+```
