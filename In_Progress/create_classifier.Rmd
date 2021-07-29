@@ -21,9 +21,9 @@ library (primerTree) # To run this it is better to have your NCBI API key in the
 # 1. Load the fasta file and the insect version of ncbi taxonomy
 
 ```{r data}
-Seqs <- readFASTA(here("analysis", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Global_.fasta"))
+Seqs <- readFASTA(here("In_Progress", "old_to_pull_from", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Global_.fasta"))
 
-lineages <- read_delim(here("analysis", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Global_taxonomy.txt"), col_names = c("Accession", "lineage"), delim = "\t" )
+lineages <- read_delim(here("In_Progress", "old_to_pull_from", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Global_taxonomy.txt"), col_names = c("Accession", "lineage"), delim = "\t" )
 
 
 # new.taxonomy.rds is a tabulated version of Genebanks' taxonomy, in which for each taxID you have its name and rank, and 
@@ -33,7 +33,7 @@ lineages <- read_delim(here("analysis", "classifiers_to_use_in_insect", "insect_
 world.taxonomy <- insect::taxonomy()
 # world.taxonomy <- read_rds(here("analysis", "classifiers_to_use_in_insect", "new.taxonomy.rds"))
 world.taxonomy %>% 
-  write_rds(here("analysis", "classifiers_to_use_in_insect", "new.taxonomy.20210723.rds"))
+  write_rds(here("In_Progress", "old_to_pull_from", "classifiers_to_use_in_insect", "new.taxonomy.20210723.rds"))
 ```
 
 From the lineages that CRUX provides, get the species value (all lineages have 7 terms, which is very nice)
@@ -95,7 +95,7 @@ tibble(Accession = names(NewSeqs)) %>%
 # Write them to a file 
 
 New.new.seqs %>% 
-  writeFASTA(file = here("analysis", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Only_with_taxID.fasta"))
+  writeFASTA(file = here("In_Progress", "old_to_pull_from", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Only_with_taxID.fasta"))
 
 ```
 
