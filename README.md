@@ -47,7 +47,7 @@ Output of various scripts.
 Subfolders for: 
 - cutadapt output
 - dada2 output
-- classification output
+- classifiers for each amplicon
 
 ### Manuscript
 All files for the manuscript.
