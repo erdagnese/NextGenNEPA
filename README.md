@@ -128,7 +128,7 @@ Creates a classifier using insect that is tree-based, from a reference database 
 #### Input
 - Hash_key.csv from step 2
 - ASV_table.csv from step 2
-- classifier_locus.rds
+- classifier_locus.rds from step 3/4
 
 #### Process
 Using insect, classify sequences from the Dada2 output
