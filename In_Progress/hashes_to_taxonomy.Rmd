@@ -1,0 +1,190 @@
+---
+title: "asvs_to_taxonomy"
+author: "Erin D'Agnese"
+date: "6/1/2021"
+output: html_document
+params: 
+  folder:
+    value: C:\Users\erdag\Documents\NextgenNEPA\analysis\test_run_20210527\MiFishMam.outputs
+  Hash_key:
+    value: C:\Users\erdag\Documents\NextgenNEPA\analysis\test_run_20210527\MiFishMam.outputs\hash_key.csv
+  ASVs: 
+    value: C:\Users\erdag\Documents\NextgenNEPA\analysis\test_run_20210527\MiFishMam.outputs\ASV_table.csv
+  classifier:
+    value: C:\Users\erdag\Documents\NextgenNEPA\analysis\insect\classifier_12S_MiFish.rds     
+---
+
+Classifying the Dada2 output sequences using the classifier created using insect from the CRUX reference databases
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = params$folder)
+```
+
+
+```{r load libraries, echo = FALSE}
+library (tidyverse)
+library (insect)
+library (seqinr)
+library (googlesheets)
+library (here)
+```
+
+
+```{r load objects by the end of the cleaning }
+Hash     <- read_csv(params$Hash_key) %>% 
+  select(Hash, Sequence) %>% distinct()
+ALL.ASVs <- read_csv(params$ASVs)
+tree.2   <- read_rds(params$classifier)
+
+
+```
+
+So these sequences are in the same direction, and they have some shared and some new sequences. 
+
+Let's keep only the unique sequences
+
+
+Make them into a DNAbin object for insect
+
+```{r make it into a DNA object}
+new.set <- Hash
+all.hashes.insect <- char2dna(new.set$Sequence)
+names (all.hashes.insect) <- new.set$Hash
+all.hashes.insect
+```
+
+
+classify all sequences in our bin file
+
+```{r classify}
+clasif.hashes <- classify (x = all.hashes.insect, tree = tree.2, cores = 4)
+#clasif.hases.new.tree <- classify(x = all.hashes.insect, 
+                                  #tree = tree.2,
+                                  #cores = "autodetect")
+#clasif.hashes %>% 
+  #bind_rows(previous.effort) %>% 
+#write_csv(here("test_run_20210527/MiMam.outputs", "last.insect.csv"))
+  
+clasif.hashes %>% 
+  unite (family, genus, species, sep = "|", col = "taxa")
+clasif.hashes %>% dplyr::count (rank) %>% arrange(desc(n))
+```
+
+
+OK. So now let's save the classification object as an RDS and save as an .csv
+
+```{r save it for now}
+clasif.hashes %>% 
+  filter(family!= "" & phylum == "") %>% 
+  distinct(class) # How many have a valid family but no phylum info
+# Add new phylum info
+clasif.hashes %>% 
+  mutate(phylum = case_when(phylum != "" ~ phylum,
+                            TRUE   ~ class)) 
+saveRDS(clasif.hashes, paste0("hashes.annotated", ".rds"))
+clasif.hashes <- readRDS("hashes.annotated.rds")
+write.csv(clasif.hashes, "hashes.annotated.csv")
+
+```
+
+apply thresholds and save modified .rds
+
+```{r}
+thresholds <- list(0.8, 0.85, 0.95)
+thresholds.classif <- map(thresholds, ~ classify(x= all.hashes.insect,
+                                              tree = tree.2,
+                                              cores = 8,
+                                              threshold = .))
+names(thresholds.classif) <- thresholds
+#ADD THE DEFAULT
+thresholds.classif[[4]] <- clasif.hashes
+# Name it
+names(thresholds.classif)[4] <- "0.9"
+saveRDS(thresholds.classif, file =paste0("hashes.annotated.threshold.rds"))
+list.of.thres <- readRDS(file ="hashes.annotated.threshold.rds")
+l2 <- lapply (list.of.thres, function (x) as_tibble(x))
+
+```
+
+Check the classification: the resolution of dataset, and classifier, let's see how many reads can be classified to species, genus, family and order level
+
+```{r checking the classification}
+clasif.hashes %>% dplyr::count (rank) %>% arrange(desc(n))# an overview of the taxonomic resolution
+# a first check: How many sequences did not have a score: Either bc they exactly match a sequence in the tree, or they do not have a translation
+clasif.hashes %>% 
+  filter (is.na(score)) %>% # 176 Hashes
+  left_join(ALL.ASVs, by = c("representative" = "Hash")) %>% 
+ # group_by(representative) %>% 
+  summarise(tot = sum(nReads)) # 2.55M reads - not only chimeras...
+clasif.hashes %>% 
+  filter(rank == "" & !is.na(score)) %>% # 2.8k  Hashes
+  left_join(ALL.ASVs, by = c("representative" = "Hash")) %>% 
+ # group_by(representative) %>% 
+  summarise(tot = sum(nReads)) # 37M reads -  holy molly
+ clasif.hashes %>% 
+   filter(rank !="") %>% # 1.5 k Hashes
+   left_join(ALL.ASVs, by = c("representative" = "Hash")) %>% 
+ mutate(Sample_name = as.character(Sample_name)) %>%
+   group_by(Sample_name) %>% 
+  summarise(tot = sum(nReads)) %>% 
+   ggplot(aes(x=fct_reorder(Sample_name, tot), y = tot))+
+   geom_col()# 6M reads
+clasif.hashes %>% 
+  filter(rank == "")
+ 
+# Create the species- level dataset
+#map_dfc (l2, ~(dplyr::count(.,rank))) 
+map_dfr(l2, ~(dplyr::count(.,rank)), .id = "Threshold" ) -> Summary.thresholds.df# This puts the results in a df
+Summary.thresholds.df$rank <- fct_relevel(Summary.thresholds.df$rank, "kingdom", "phylum", "subphylum", "subdivision", "superclass", "class",  "subclass", "subterclass", "infraclass", "superorder" , "order" , "suborder", "infraorder", "superfamily", "family", "subfamily" , "tribe",  "genus", "subgenus", "subsection",  "species")
+Summary.thresholds.df$rank <- fct_recode(Summary.thresholds.df$rank, "Not Assigned" = "")
+levels(Summary.thresholds.df$rank)
+Summary.thresholds.df %>%
+  ggplot (aes (x= rank, y = n, color = Threshold)) +
+  geom_line(aes(group = Threshold))
+Summary.thresholds.df %>%
+  
+  ggplot (aes (x= rank, y = n, fill = Threshold)) +
+  geom_col(position = "dodge", color = "black") +
+  theme(axis.text.x = element_text(angle = 45,vjust = 0.75))
+  ggsave(filename = "Different.thresholds.png", width = 14)
+clas.hash.tibble %>% dplyr::count (rank) %>%
+  filter (str_detect(rank, ("species|genus|family|order")) ) %>%
+  summarise (sum(n)) # 1331 Hashes identified to a level of order or lower
+clas.hash.tibble %>% dplyr::count (rank) %>%
+  filter (!str_detect(rank, ("species|genus|family|order")) ) %>%
+  summarise (sum(n)) # 17k have not being IDed to that level
+clas.hash.tibble %>% dplyr::count (rank) %>%
+  filter ( rank == "")  %>%
+  summarise (sum(n)) # 13k have a big fat 0 as a result
+
+
+ALL.ASVs %>% group_by(Hash) %>% 
+  summarise(n2=sum(nReads)) -> reads.per.hash
+map_dfr(l2, ~(dplyr::add_count(.,rank)), .id = "Threshold" ) -> Summary.thresholds.2# This puts the results in a df
+```
+
+
+create plots to visualize the differences in classification bewteen thresholds to see that everything is working
+```{r}
+Summary.thresholds.2 %>% left_join(reads.per.hash, by = c("representative"="Hash")) -> Summary.thresholds.2
+Summary.thresholds.2 %>% group_by(Threshold, rank, n) %>% summarise(nReads = sum(n2)) -> Summary.thresholds
+unique(Summary.thresholds$rank)
+#Summary.thresholds$rank <- fct_relevel(Summary.thresholds.df$rank, "class",   "infraclass", "superorder" , "order" , "suborder", "family", "subfamily" , "tribe",  "genus", "species", "clade", "cohort", "no rank")
+Summary.thresholds %>%
+  
+  ggplot (aes (x= rank, y = n, fill = Threshold)) +
+  geom_col(position = "dodge", color = "black") +
+  theme(axis.text.x = element_text(angle = 45,vjust = 0.75)) -> p
+  ggsave(filename = "Different.thresholds.png", width = 14)
+  
+Summary.thresholds %>%
+  
+  ggplot (aes (x= rank, y = nReads, fill = Threshold)) +
+  geom_col(position = "dodge", color = "black") +
+  theme(axis.text.x = element_text(angle = 45,vjust = 0.75)) -> q
+  ggsave(filename = "Different.thresholds.png", width = 14)  
+  p+q+plot_layout(guides = "collect")
+  
+```
+
+
