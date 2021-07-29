@@ -60,7 +60,9 @@ All files for the manuscript.
 ## How to use this repo: step by step order of operations
 NOTE: add paths to scripts and inputs
 
-### 1. Remove primers from sequences
+### 1. Remove primers from sequences 
+*NOTE: this is actually done locally because the fasta files are too big 
+
 #### Scripts used
 fastqs_to_asvs.Rmd
 
@@ -75,6 +77,8 @@ Read in raw fasta files and use cutadapt script to remove Nextera indices and PC
 - fasta files with primers removed
 
 ### 2. Dada2: quality control and  convert reads to AVS
+*NOTE: this is actually done locally because the fasta files are too big 
+
 #### Scripts used
 fastqs_to_asvs.Rmd (same as step 1)
 
@@ -91,7 +95,8 @@ Use dada2 to trim reads based on quality scores, merge paired end reads, and mak
 - Hash key - fasta
 
 ### 3a. Build classifier for each locus.
-NOTE: only do this one time - after that, just add to it
+*NOTE: this is actually done locally because the fasta files are too big 
+*NOTE: only do this one time - after that, just add to it
 
 #### Scripts used
 - create_classifier.Rmd
