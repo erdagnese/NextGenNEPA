@@ -1,5 +1,5 @@
 ---
-title: "asvs_to_taxonomy"
+title: "hashes_to_taxonomy"
 author: "Erin D'Agnese"
 date: "6/1/2021"
 output: html_document
@@ -27,6 +27,7 @@ library (insect)
 library (seqinr)
 library (googlesheets)
 library (here)
+library (patchwork)
 ```
 
 
