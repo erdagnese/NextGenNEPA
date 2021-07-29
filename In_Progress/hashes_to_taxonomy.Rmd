@@ -5,13 +5,15 @@ date: "6/1/2021"
 output: html_document
 params: 
   folder:
-    value: C:\Users\erdag\Documents\NextgenNEPA\analysis\test_run_20210527\MiFishMam.outputs
+    value: C:\Users\erdag\NextGenNEPA_local\insect_output_files\testrun 
   Hash_key:
     value: C:\Users\erdag\Documents\NextgenNEPA\analysis\test_run_20210527\MiFishMam.outputs\hash_key.csv
   ASVs: 
     value: C:\Users\erdag\Documents\NextgenNEPA\analysis\test_run_20210527\MiFishMam.outputs\ASV_table.csv
   classifier:
-    value: C:\Users\erdag\Documents\NextgenNEPA\analysis\insect\classifier_12S_MiFish.rds     
+    value: C:\Users\erdag\NextGenNEPA_local\classifiers\classifier_12S_MiFish.rds  
+  
+       
 ---
 
 Classifying the Dada2 output sequences using the classifier created using insect from the CRUX reference databases
@@ -59,13 +61,7 @@ classify all sequences in our bin file
 
 ```{r classify}
 clasif.hashes <- classify (x = all.hashes.insect, tree = tree.2, cores = 4)
-#clasif.hases.new.tree <- classify(x = all.hashes.insect, 
-                                  #tree = tree.2,
-                                  #cores = "autodetect")
-#clasif.hashes %>% 
-  #bind_rows(previous.effort) %>% 
-#write_csv(here("test_run_20210527/MiMam.outputs", "last.insect.csv"))
-  
+
 clasif.hashes %>% 
   unite (family, genus, species, sep = "|", col = "taxa")
 clasif.hashes %>% dplyr::count (rank) %>% arrange(desc(n))
@@ -111,55 +107,37 @@ Check the classification: the resolution of dataset, and classifier, let's see h
 
 ```{r checking the classification}
 clasif.hashes %>% dplyr::count (rank) %>% arrange(desc(n))# an overview of the taxonomic resolution
-# a first check: How many sequences did not have a score: Either bc they exactly match a sequence in the tree, or they do not have a translation
+# a first check: How many sequences did not have a score: Either bc they exactly match a sequence in the tree
 clasif.hashes %>% 
   filter (is.na(score)) %>% # 176 Hashes
   left_join(ALL.ASVs, by = c("representative" = "Hash")) %>% 
  # group_by(representative) %>% 
-  summarise(tot = sum(nReads)) # 2.55M reads - not only chimeras...
+  summarise(tot = sum(nReads)) # 2.7M reads
 clasif.hashes %>% 
-  filter(rank == "" & !is.na(score)) %>% # 2.8k  Hashes
+  filter(rank == "" & !is.na(score)) %>% # 
   left_join(ALL.ASVs, by = c("representative" = "Hash")) %>% 
  # group_by(representative) %>% 
-  summarise(tot = sum(nReads)) # 37M reads -  holy molly
+  summarise(tot = sum(nReads)) # 0
  clasif.hashes %>% 
-   filter(rank !="") %>% # 1.5 k Hashes
+   filter(rank !="") %>% #
    left_join(ALL.ASVs, by = c("representative" = "Hash")) %>% 
  mutate(Sample_name = as.character(Sample_name)) %>%
    group_by(Sample_name) %>% 
   summarise(tot = sum(nReads)) %>% 
    ggplot(aes(x=fct_reorder(Sample_name, tot), y = tot))+
-   geom_col()# 6M reads
+   geom_col()# 
 clasif.hashes %>% 
   filter(rank == "")
  
 # Create the species- level dataset
-#map_dfc (l2, ~(dplyr::count(.,rank))) 
 map_dfr(l2, ~(dplyr::count(.,rank)), .id = "Threshold" ) -> Summary.thresholds.df# This puts the results in a df
-Summary.thresholds.df$rank <- fct_relevel(Summary.thresholds.df$rank, "kingdom", "phylum", "subphylum", "subdivision", "superclass", "class",  "subclass", "subterclass", "infraclass", "superorder" , "order" , "suborder", "infraorder", "superfamily", "family", "subfamily" , "tribe",  "genus", "subgenus", "subsection",  "species")
-Summary.thresholds.df$rank <- fct_recode(Summary.thresholds.df$rank, "Not Assigned" = "")
-levels(Summary.thresholds.df$rank)
-Summary.thresholds.df %>%
-  ggplot (aes (x= rank, y = n, color = Threshold)) +
-  geom_line(aes(group = Threshold))
-Summary.thresholds.df %>%
-  
-  ggplot (aes (x= rank, y = n, fill = Threshold)) +
-  geom_col(position = "dodge", color = "black") +
-  theme(axis.text.x = element_text(angle = 45,vjust = 0.75))
-  ggsave(filename = "Different.thresholds.png", width = 14)
-clas.hash.tibble %>% dplyr::count (rank) %>%
-  filter (str_detect(rank, ("species|genus|family|order")) ) %>%
-  summarise (sum(n)) # 1331 Hashes identified to a level of order or lower
-clas.hash.tibble %>% dplyr::count (rank) %>%
-  filter (!str_detect(rank, ("species|genus|family|order")) ) %>%
-  summarise (sum(n)) # 17k have not being IDed to that level
-clas.hash.tibble %>% dplyr::count (rank) %>%
-  filter ( rank == "")  %>%
-  summarise (sum(n)) # 13k have a big fat 0 as a result
 
 
-ALL.ASVs %>% group_by(Hash) %>% 
+```
+
+summarize by the sum of reads per hash
+```{r}
+  ALL.ASVs %>% group_by(Hash) %>% 
   summarise(n2=sum(nReads)) -> reads.per.hash
 map_dfr(l2, ~(dplyr::add_count(.,rank)), .id = "Threshold" ) -> Summary.thresholds.2# This puts the results in a df
 ```
@@ -170,13 +148,12 @@ create plots to visualize the differences in classification bewteen thresholds t
 Summary.thresholds.2 %>% left_join(reads.per.hash, by = c("representative"="Hash")) -> Summary.thresholds.2
 Summary.thresholds.2 %>% group_by(Threshold, rank, n) %>% summarise(nReads = sum(n2)) -> Summary.thresholds
 unique(Summary.thresholds$rank)
-#Summary.thresholds$rank <- fct_relevel(Summary.thresholds.df$rank, "class",   "infraclass", "superorder" , "order" , "suborder", "family", "subfamily" , "tribe",  "genus", "species", "clade", "cohort", "no rank")
+#Summary.thresholds$rank <- fct_relevel(Summary.thresholds.df$rank, "class",   "infraclass", "superorder" , "order" , "suborder", "family", "subfamily" , "tribe",  "genus", "species", "clade", "cohort", "no rank") #this section isn't working to actually re-order the ranks while keeping the reads together
 Summary.thresholds %>%
   
   ggplot (aes (x= rank, y = n, fill = Threshold)) +
   geom_col(position = "dodge", color = "black") +
   theme(axis.text.x = element_text(angle = 45,vjust = 0.75)) -> p
-  ggsave(filename = "Different.thresholds.png", width = 14)
   
 Summary.thresholds %>%
   
@@ -185,7 +162,7 @@ Summary.thresholds %>%
   theme(axis.text.x = element_text(angle = 45,vjust = 0.75)) -> q
   ggsave(filename = "Different.thresholds.png", width = 14)  
   p+q+plot_layout(guides = "collect")
-  
+  ggsave(filename = "Different.thresholds,compare.png", width = 14)
 ```
 
 
