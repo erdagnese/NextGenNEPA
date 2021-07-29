@@ -90,6 +90,7 @@ Use dada2 to trim reads based on quality scores, merge paired end reads, and mak
 NOTE: only do this one time - after that, just add to it
 
 #### Scripts used
+- create_classifier.Rmd
 
 #### Input
 - CRUX fasta file 
@@ -107,18 +108,30 @@ NOTE: only do this one time - after that, just add to it
 NOTE: hopefully don't need to rebuild tree
 
 #### Scripts used
+- modify_classifier.Rmd
+
 #### Input
+- New CRUX fasta file - after modifying
+- New CRUX taxonomy file - after modifying
+
 #### Process
+Creates a classifier using insect that is tree-based, from a reference database created using CRUX
+
 #### Output
+- classifer_"locus".rds (to be used in the next step - will be too large to house on github)
 
 ### 4. Annotate ASVs for each locus 
 
 #### Scripts used
-#### Input
+- asvs_to_taxonomy.Rmd
 
+#### Input
+- Hash_key.csv from step 2
+- ASV_table.csv from step 2
+- classifier_locus.rds
 
 #### Process
-
+Using insect, classify sequences from the Dada2 output
 
 #### Output
 - taxon table (taxa as rows, samples as columns, values are number of reads)
