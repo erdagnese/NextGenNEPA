@@ -86,7 +86,7 @@ write.csv(clasif.hashes, "hashes.annotated.csv")
 
 apply thresholds and save modified .rds
 
-```{r}
+```{r apply thresholds}
 thresholds <- list(0.8, 0.85, 0.95)
 thresholds.classif <- map(thresholds, ~ classify(x= all.hashes.insect,
                                               tree = tree.2,
@@ -136,7 +136,7 @@ map_dfr(l2, ~(dplyr::count(.,rank)), .id = "Threshold" ) -> Summary.thresholds.d
 ```
 
 summarize by the sum of reads per hash
-```{r}
+```{r df of reads per threshold}
   ALL.ASVs %>% group_by(Hash) %>% 
   summarise(n2=sum(nReads)) -> reads.per.hash
 map_dfr(l2, ~(dplyr::add_count(.,rank)), .id = "Threshold" ) -> Summary.thresholds.2# This puts the results in a df
@@ -144,7 +144,7 @@ map_dfr(l2, ~(dplyr::add_count(.,rank)), .id = "Threshold" ) -> Summary.threshol
 
 
 create plots to visualize the differences in classification bewteen thresholds to see that everything is working
-```{r}
+```{r create plots for thresholds}
 Summary.thresholds.2 %>% left_join(reads.per.hash, by = c("representative"="Hash")) -> Summary.thresholds.2
 Summary.thresholds.2 %>% group_by(Threshold, rank, n) %>% summarise(nReads = sum(n2)) -> Summary.thresholds
 unique(Summary.thresholds$rank)
