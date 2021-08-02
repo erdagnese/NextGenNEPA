@@ -167,6 +167,7 @@ Summary.thresholds %>%
 
 now we want to make a tax.table for use in the phyloseq object
 ```{r using tax.table.R to make a tax table}
+#need to make this line not contigent on local directory
 source("C:/Users/erdag/github/NextGenNEPA/functions/tax.table.R")
 
 taxtable <- tax.table(clasif.hashes)
