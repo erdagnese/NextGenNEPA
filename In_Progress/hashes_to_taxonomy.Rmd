@@ -165,4 +165,11 @@ Summary.thresholds %>%
   ggsave(filename = "Different.thresholds,compare.png", width = 14)
 ```
 
+now we want to make a tax.table for use in the phyloseq object
+```{r using tax.table.R to make a tax table}
+source("C:/Users/erdag/github/NextGenNEPA/functions/tax.table.R")
+
+taxtable <- tax.table(clasif.hashes)
+write.csv(taxtable, "taxtable.csv")
+```
 

@@ -5,8 +5,7 @@ tax.table <- function(df){
   library (tidyverse)
   library (plyr)
   
-  taxonomy.file <- subset(df, select = -X)
-  taxonomy.file <- as.data.frame(taxonomy.file)
+  taxonomy.file <- as.data.frame(df)
   row.names(taxonomy.file) = taxonomy.file[,1]
   tax.mat = taxonomy.file[,-1]
   tax.table <- as.matrix(tax.mat)
