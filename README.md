@@ -143,8 +143,8 @@ Creates a classifier using insect that is tree-based, from a reference database 
 Using insect, classify sequences from the Dada2 output
 
 #### Output
+- taxonomy table (hashes, assigned taxonomy with levels as columns)
 - taxon table (taxa as rows, samples as columns, values are number of reads)
-- 
 
 #### DO WE WANT TO HAVE A STEP WHERE WE MERGE DATA FROM MULTIPLE LOCI? 
 
