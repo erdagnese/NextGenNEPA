@@ -171,6 +171,7 @@ now we want to make a tax.table for use in the phyloseq object
 source("C:/Users/erdag/github/NextGenNEPA/functions/tax.table.R")
 
 taxtable <- tax.table(clasif.hashes)
-write.csv(taxtable, "taxtable.csv")
+#make this a save as rds and save it in the github output folder 
+write.csv(taxtable, "taxtable.csv")#save it in the local directory for any future needs
 ```
 
