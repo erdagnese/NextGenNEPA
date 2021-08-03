@@ -39,7 +39,9 @@ Hash     <- read_csv(params$Hash_key) %>%
 ALL.ASVs <- read_csv(params$ASVs)
 tree.2   <- read_rds(params$classifier)
 
-#add line for bringing in the previous annotated run to start from and add to
+#bringing in the previous annotated run to start from and add to
+
+previous.effort <- read_rds(here("Output", "insect_output_files", "12S_testrun", "hashes.annotated.rds"))
 
 ```
 
@@ -51,7 +53,7 @@ Let's keep only the unique sequences
 Make them into a DNAbin object for insect
 
 ```{r make it into a DNA object}
-new.set <- Hash
+new.set <- anti_join(Hash, previous.effort, by = c("Hash" = "representative"))
 all.hashes.insect <- char2dna(new.set$Sequence)
 names (all.hashes.insect) <- new.set$Hash
 all.hashes.insect
