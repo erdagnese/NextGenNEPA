@@ -23,8 +23,8 @@ Check that here() starts at /Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub
 # the metadata actually is stored somewhere else to keep all the columns that we want (not use dada2 generated metadata file) 
 
 # now use the pattern to sort out the files - ^ means "starts with" 
-all.asvs <- list.files(path = here("Output"), pattern = "^ASV_table.csv", recursive = T, full.names = T)
-all.hashes <- list.files(path = here("Output"), pattern = "^Hash_key.csv", recursive = T, full.names = T,ignore.case = T)
+all.asvs <- list.files(path = here("Output","dada2_output_files"), pattern = "^ASV_table.csv", recursive = T, full.names = T)
+all.hashes <- list.files(path = here("Output","dada2_output_files"), pattern = "^Hash_key.csv", recursive = T, full.names = T,ignore.case = T)
 
 all.metadata <- list.files(path = here("Input","sequencing_metadata_files"), pattern = "^Run", recursive = T, full.names = T)
 
@@ -39,8 +39,8 @@ MiMammal.asvs <- str_subset(all.asvs, "MiMammal")
 MiMammal.hashes <- str_subset(all.hashes, "MiMammal")
 
 # we also probably want mifish and mimammal together 
-MiX.asvs <- str_subset(all.asvs, "dada2/Mi")
-MiX.hashes <- str_subset(all.hashes, "dada2/Mi")
+MiX.asvs <- str_subset(all.asvs, "/Mi")
+MiX.hashes <- str_subset(all.hashes, "/Mi")
 
 ```
 
@@ -60,17 +60,17 @@ MiX.hash.key %>%
 
 # Write the Hash keys from start
 COI.hash.key %>% 
-  write_csv(here("Output", "COI.starting.hash.key.csv"))
+  write_csv(here("Output", "dada2_output_files", "COI.hash.key.csv"))
 
 MiX.hash.key %>% 
-  write_csv(here("Output", "MiX.starting.hash.key.csv"))
+  write_csv(here("Output", "dada2_output_files", "MiX.hash.key.csv"))
 
 # Write the merged ASV tables
 COI.ASV.table %>% 
-  write_csv(here("Output", "COI.merged.ASV.table.csv"))
+  write_csv(here("Output", "dada2_output_files", "COI.merged.ASV.table.csv"))
 
 MiX.ASV.table %>% 
-  write_csv(here("Output", "MiX.merged.ASV.table.csv"))
+  write_csv(here("Output", "dada2_output_files", "MiX.merged.ASV.table.csv"))
 
 
 ```
@@ -90,9 +90,9 @@ MiX.metadata <- MiX.metadata[MiX.metadata$Locus != "Ac16S",]
 
 # Write the metadata files by marker after merging runs
 COI.metadata %>% 
-  write_csv(here("Output", "COI.all.metadata.csv"))
+  write_csv(here("Output", "dada2_output_files", "COI.all.metadata.csv"))
 
 MiX.metadata %>% 
-  write_csv(here("Output", "MiX.all.metadata.csv"))
+  write_csv(here("Output", "dada2_output_files", "MiX.all.metadata.csv"))
 
 ```
