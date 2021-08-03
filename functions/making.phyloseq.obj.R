@@ -3,7 +3,6 @@
 make.phyloseq.obj <- function(asv.mat,metadata, tax.mat) {
  
   require(tidyverse)
-  require(plyr)
   require(vegan)
   require(phyloseq)
   
