@@ -14,3 +14,52 @@ into a phyloseq object
 
 
 then collapse to taxon and produce an OTU table to be combined with other run OTU tables later
+
+```{r libraries and functions}
+library(tidyverse)
+library(here)
+library(phyloseq)
+
+```
+load source function scripts
+```{r}
+source(here("functions","asv.matrix.R"))
+source(here("functions","making.phyloseq.obj.R"))
+source(here("functions", "tax.table.R"))
+```
+
+
+load the taxonomy file from the project file
+```{r}
+tax.input <- read_rds(here("Output","insect_output_files", "12S_testrun", "hashes.annotated.rds"))
+asv.mat <- read_csv(here("Output", "ASV_metadata", "test_run_20210527", "12S", "ASV_table.csv"))
+metadata <- read_csv(here("Output", "ASV_metadata", "test_run_20210527", "20210528_testseq_creek_metadata.csv"))
+```
+ONLY USE THIS FOR THE 12S ASV TABLE IF THEY AREN'T SPLIT
+```{r}
+asv_fish <- asv.mat[asv.mat$Locus =="MiFish",]
+asv_mam <- asv.mat[asv.mat$Locus =="MiMammal",]
+#lets assign mifish to asv.mat for the future work first
+asv.mat <- asv_fish
+```
+
+Select out the metadata for the locus of choice
+```{r}
+metadata <- metadata[metadata$locus == "MiFish",]
+```
+
+
+Making the ASV table into a matrix 
+```{r ASV pivot}
+asv.mat <- asv.matrix(asv.mat)
+```
+
+making annoted hashes into the taxtable
+```{r}
+tax.mat <- tax.table(tax.input)
+```
+making a phyloseq object from the input
+```{r}
+phylo <- make.phyloseq.obj(asv.mat, metadata, tax.mat)
+```
+

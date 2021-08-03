@@ -13,7 +13,8 @@ make.phyloseq.obj <- function(asv.mat,metadata, tax.mat) {
   
   physeq = phyloseq(ASV,TAX)
   
-  samples = sample_data(meta_data)
+  samples = sample_data(metadata)
+  sample_names(samples) <- metadata$sample_id
   
   physeq = merge_phyloseq(physeq,samples)
   
