@@ -13,8 +13,6 @@ Need to take the hashes annotated .rds in the github outputs, use the ASV table 
 into a phyloseq object
 
 
-then collapse to taxon and produce an OTU table to be combined with other run OTU tables later
-
 ```{r libraries and functions}
 library(tidyverse)
 library(here)
@@ -63,3 +61,4 @@ making a phyloseq object from the input
 phylo <- make.phyloseq.obj(asv.mat, metadata, tax.mat)
 ```
 
+then collapse to taxon and produce an OTU table to be combined with other run OTU tables later

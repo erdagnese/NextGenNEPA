@@ -3,8 +3,7 @@
 
 tax.table <- function(df){
   library (tidyverse)
-  library (plyr)
-  
+ 
   taxonomy.file <- as.data.frame(df)
   row.names(taxonomy.file) = taxonomy.file[,1]
   tax.mat = taxonomy.file[,-1]
