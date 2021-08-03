@@ -18,7 +18,7 @@ Files/folders include:
 - creek_metadata_to_plot.csv - temperature, DO, etc. for all time sampled
 - sequencing_metadata_files folder 
 -- metadata file for each run (RunX_202XXXXX_metadata.csv) which has the following columns: Sequencing.run, Sample.number, Sample.name, Index.number, i7_Index_Name, i5_Index_Name, Well, Locus, Creek, Station, Bio.rep, Month.year, Dilution.factor, Type (sample vs kangaroo)
-- insect_classifiers folder with subfolder for each marker (12S - which is both MiFish and MiMammal - and COI) - each subfolder has a .fasta file of sequences and a .txt file with taxonomy 
+- insect_classifiers folder with subfolder for each marker (12S - which is both MiFish and MiMammal aka MiX - and COI) - each subfolder has a .fasta file of sequences and a .txt file with taxonomy 
 
 *Note: raw fastq files are not housed here - the fastq files are processed using cutadapt and dada2 offline 
 
@@ -26,8 +26,10 @@ Files/folders include:
 The functions folder has commonly used functions in R for eDNA analysis. 
 
 Functions include: 
-- eDNAindex.R
-- asv.matrix.R 
+- eDNAindex.R (calculates eDNA index from # of reads - from Moncho/Ryan)
+- asv.matrix.R (return a matrix form of the vector form of ASV table which is produced from dada2 output)
+- tax.table.R (makes the tax.table from the annotated hashes files created from insect)
+- making.phyloseq.object.R (make.phyloseq.obj.R(asv.mat,metadata,tax.table) from asv matrix, metadata, and tax table)
 
 ### Scripts
 There are many types of scripts in this repo. We have attempted to make the names informative. For the order of operations, see the next section, "How to use this repo: step by step order of operations". 
@@ -48,9 +50,13 @@ Scripts include:
 Output of various scripts. 
 
 Subfolders for: 
-- cutadapt output
-- dada2 output
-- classifiers for each amplicon** too big to house on github
+- dada2_output_files 
+-- subfolders for each sequencing run 
+-- sub-subfolders for each marker - provides ASV table, hash key *NOTE imported bc dada2 is run offline
+-- then in main folder, merged asv table, hash key, and metadata file is produced from "merge_runs.Rmd" script
+- insect_output_files 
+-- subfolders for each marker (because runs were already merged) 
+-- each subfolder contains a .rds file of the hashes annotated
 
 ### Manuscript
 All files for the manuscript.
