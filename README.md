@@ -11,7 +11,7 @@ Metabarcoding is done for 3 markers (12S MiFish, 12S MiMammal, COI Leray). Seque
 We will try to measure the change in communities (via 3 markers) between upstream and downstream of the barriers, while also accounting for communities changing over time (seasonally). 
 
 ## Organization of files in this repo  
-This repo has folders for: data, functions, scripts, output, and the manuscript.  
+This repo has folders for: input, output, scripts, functions, and the manuscript.  
 
 
 ### Data
@@ -23,8 +23,12 @@ Files include:
 - metadata for the sequencing runs (sample, Nextera index, primer etc.)
 
 ### Input
-Files include:
-- CRUX databases for each marker used to make classifiers for annotating ASVs
+Files/folders include:
+- creek_metadata_to_plot.csv - temperature, DO, etc. for all time sampled
+- sequencing_metadata_files folder 
+-- metadata file for each run (RunX_202XXXXX_metadata.csv) which has the following columns: Sequencing.run, Sample.number, Sample.name, Index.number, i7_Index_Name, i5_Index_Name, Well, Locus, Creek, Station, Bio.rep, Month.year, Dilution.factor, Type (sample vs kangaroo)
+- insect_classifiers folder with subfolder for each marker (12S - which is both MiFish and MiMammal - and COI) - each subfolder has a .fasta file of sequences and a .txt file with taxonomy 
+
 
 ### Functions
 The functions folder has commonly used functions in R for eDNA analysis. 
@@ -37,11 +41,14 @@ Functions include:
 There are many types of scripts in this repo. We have attempted to make the names informative. For the order of operations, see the next section, "How to use this repo: step by step order of operations". 
 
 Scripts include: 
-- fastqs_to_asvs.Rmd (takes in fastq files, uses cutadapt to remove primers, uses dada2 to trim and form ASVs)
-- create_classifiers.Rmd (makes initial classifiers for each locus)
+- cutadapt.wrapper.EA.Rmd (takes in fastq files, uses cutadapt to remove primers - originally by Moncho - RUN OFFLINE)
+- split_primers.Rmd (takes cutadapt output and separates by marker before running dada2 - RUN OFFLINE)
+- dada2.EA.Rmd (performs dada2 for each marker - also originally by Moncho - RUN OFFLINE)
+- merge_runs.Rmd (merges ASVs/samples from multiple sequencing runs and separates by markers)
+- COI_denoise.Rmd (denoises - checks for tag jumping, low reads, etc. - also originally by Moncho)
+- create_classifier.Rmd (makes initial classifiers for each locus)
 - update_classifiers.Rmd (updates initial classifiers to add new things found)
-- merge_multiple_runs.Rmd (merges ASVs/samples from multiple sequencing runs)
-- asvs_to_taxa.Rmd (takes in ASVs and assigns taxonomy)
+- hashes_to_taxonomy.Rmd (takes in ASVs and assigns taxonomy)
 - reads_to_dna.Rmd (takes reads - either as ASVs or taxa - and converts to DNA for each ASV/taxa)
 - pairwise_cuvlert.Rmd (compares up/down community at each culvert for each month)
 
