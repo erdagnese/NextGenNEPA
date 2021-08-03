@@ -1,0 +1,98 @@
+---
+title: "merge_runs.Rmd"
+author: "Eily Allan"
+date: "8/3/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(here)
+```
+
+## Load datasets and metadata
+
+We ran dada2 separately for each marker - and we have samples for each month split across multiple sequencing runs. So what we want to do is take the output from dada2 for each run and smash them together so we have one big ASV table for all the samples for a given marker. This means we are going to run this script each time we add another sequencing run. 
+
+Check that here() starts at /Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA
+
+```{r just file paths so far}
+# the asvs and hashes come from the output folder where each run has a subfolder for dada2 and then subfolders for each marker... 
+# the metadata actually is stored somewhere else to keep all the columns that we want (not use dada2 generated metadata file) 
+
+# now use the pattern to sort out the files - ^ means "starts with" 
+all.asvs <- list.files(path = here("Output"), pattern = "^ASV_table.csv", recursive = T, full.names = T)
+all.hashes <- list.files(path = here("Output"), pattern = "^Hash_key.csv", recursive = T, full.names = T,ignore.case = T)
+
+all.metadata <- list.files(path = here("Input","sequencing_metadata_files"), pattern = "^Run", recursive = T, full.names = T)
+
+# now sort ASVs and hashes by marker
+COI.asvs <- str_subset(all.asvs, "COI")
+COI.hashes <- str_subset(all.hashes, "COI")
+
+MiFish.asvs <- str_subset(all.asvs, "MiFish")
+MiFish.hashes <- str_subset(all.hashes, "MiFish")
+
+MiMammal.asvs <- str_subset(all.asvs, "MiMammal")
+MiMammal.hashes <- str_subset(all.hashes, "MiMammal")
+
+# we also probably want mifish and mimammal together 
+MiX.asvs <- str_subset(all.asvs, "dada2/Mi")
+MiX.hashes <- str_subset(all.hashes, "dada2/Mi")
+
+```
+
+Now let's actually start pulling ASV and hash files together and merging them all - we will do the metadata after
+
+```{r pull and merge ASV tables and hashes by markers}
+
+COI.ASV.table <- bind_rows(map(COI.asvs, read_csv))
+COI.hash.key <- bind_rows(map(COI.hashes, read_csv))
+COI.hash.key %>% 
+  distinct(Hash, .keep_all = T) -> hash.key
+
+MiX.ASV.table <- bind_rows(map(MiX.asvs, read_csv))
+MiX.hash.key <- bind_rows(map(MiX.hashes, read_csv))
+MiX.hash.key %>% 
+  distinct(Hash, .keep_all = T) -> hash.key
+
+# Write the Hash keys from start
+COI.hash.key %>% 
+  write_csv(here("Output", "COI.starting.hash.key.csv"))
+
+MiX.hash.key %>% 
+  write_csv(here("Output", "MiX.starting.hash.key.csv"))
+
+# Write the merged ASV tables
+COI.ASV.table %>% 
+  write_csv(here("Output", "COI.merged.ASV.table.csv"))
+
+MiX.ASV.table %>% 
+  write_csv(here("Output", "MiX.merged.ASV.table.csv"))
+
+
+```
+
+Now the metadata file is only by run - we want to read all the metadata files together and then split by marker afterwards. 
+
+```{r merge and then split metadata files by markers}
+
+all.metadata.merge <- bind_rows(map(all.metadata, function(x) {
+  read_csv(x) }))
+
+COI.metadata <- all.metadata.merge[all.metadata.merge$Locus == "LerayXT",]
+MiFish.metadata <- all.metadata.merge[all.metadata.merge$Locus == "MiFish",]
+MiMammal.metadata <- all.metadata.merge[all.metadata.merge$Locus == "MiMammal",]
+MiX.metadata <- all.metadata.merge[all.metadata.merge$Locus != "LerayXT",]
+MiX.metadata <- MiX.metadata[MiX.metadata$Locus != "Ac16S",]
+
+# Write the metadata files by marker after merging runs
+COI.metadata %>% 
+  write_csv(here("Output", "COI.all.metadata.csv"))
+
+MiX.metadata %>% 
+  write_csv(here("Output", "MiX.all.metadata.csv"))
+
+```
