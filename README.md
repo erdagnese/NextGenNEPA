@@ -13,15 +13,6 @@ We will try to measure the change in communities (via 3 markers) between upstrea
 ## Organization of files in this repo  
 This repo has folders for: input, output, scripts, functions, and the manuscript.  
 
-
-### Data
-The data folder has sequencing data and supporting metadata files required for running different scripts.
-
-Files include: 
-- raw fastq files separated by sequencing run (usually one sequencing run is one month's worth of samples) **too big to house on github
-- field metadata for the creeks (temperature, time, DO, turbidity)
-- metadata for the sequencing runs (sample, Nextera index, primer etc.)
-
 ### Input
 Files/folders include:
 - creek_metadata_to_plot.csv - temperature, DO, etc. for all time sampled
@@ -29,6 +20,7 @@ Files/folders include:
 -- metadata file for each run (RunX_202XXXXX_metadata.csv) which has the following columns: Sequencing.run, Sample.number, Sample.name, Index.number, i7_Index_Name, i5_Index_Name, Well, Locus, Creek, Station, Bio.rep, Month.year, Dilution.factor, Type (sample vs kangaroo)
 - insect_classifiers folder with subfolder for each marker (12S - which is both MiFish and MiMammal - and COI) - each subfolder has a .fasta file of sequences and a .txt file with taxonomy 
 
+*Note: raw fastq files are not housed here - the fastq files are processed using cutadapt and dada2 offline 
 
 ### Functions
 The functions folder has commonly used functions in R for eDNA analysis. 
