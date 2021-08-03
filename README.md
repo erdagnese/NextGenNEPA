@@ -65,11 +65,12 @@ All files for the manuscript.
 ## How to use this repo: step by step order of operations
 NOTE: add paths to scripts and inputs
 
-### 1. Remove primers from sequences 
+### 1. Remove primers from sequences and then separate by marker
 *NOTE: this is actually done locally because the fasta files are too big 
 
 #### Scripts used
-fastqs_to_asvs.Rmd
+cutadapt.wrapper.EA.Rmd (NOTE: original script from Ramon Gallego - https://github.com/ramongallego/Nextera_Dada2)
+split_primers.Rmd 
 
 #### Input
 - Raw fasta files from sequencer (folder with two .fastq files per sample - R1 and R2 - not zipped) **too big to house on github
@@ -81,18 +82,19 @@ Read in raw fasta files and use cutadapt script to remove Nextera indices and PC
 #### Output
 - fasta files with primers removed
 
-### 2. Dada2: quality control and  convert reads to AVS
-*NOTE: this is actually done locally because the fasta files are too big 
+### 2. Dada2: quality control and  convert reads to AVS and then merge multiple sequencing runs
+*NOTE: dada2 is run offline, merging multiple runs is done in this repo
 
 #### Scripts used
-fastqs_to_asvs.Rmd (same as step 1)
+dada2.EA.Rmd (NOTE: this is actually done locally because the fasta files are too big - original script by Ramon Gallego - https://github.com/ramongallego/Nextera_Dada2)
+merge_runs.Rmd
 
 #### Input
-- fasta files with primers removed
+- fasta files with primers removed organized into subfolder by marker
 - need to decide on how much to trim off based on quality score plot! 
 
 #### Process
-Use dada2 to trim reads based on quality scores, merge paired end reads, and make ASVs (using hashes) from reads. (See https://github.com/ramongallego/Nextera_Dada2)  
+Use dada2 to trim reads based on quality scores, merge paired end reads, and make ASVs (using hashes) from reads. In this case, start with 150/150 on F/R for 12S MiFish and MiMammal and 250/200 for COI LerayXT. Be sure to double check output plots to make sure those are reasonable numbers.
 
 #### Output
 - ASV table (Hash, Sample, nReads)
@@ -137,10 +139,10 @@ Creates a classifier using insect that is tree-based, from a reference database 
 ### 4. Annotate ASVs for each locus 
 
 #### Scripts used
-- asvs_to_taxonomy.Rmd
+- hashes_to_taxonomy.Rmd
 
 #### Input
-- Hash_key.csv from step 2
+- Hash_key.csv from step 2 
 - ASV_table.csv from step 2
 - classifier_locus.rds from step 3/4
 
