@@ -9,8 +9,13 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-library(tidyverse)
-library(here)
+ library (tidyverse)
+ library (vegan)
+ library (here)
+ library (proxy)
+ library (reshape2)
+ library (seqinr)
+ library (patchwork)
 ```
 
 ## Load datasets and metadata
@@ -19,8 +24,12 @@ We have completed cutadapt and dada2, and then merged ASV tables, hash keys, and
 
 ```{r load merged COI asv table, hash key, metadata}
 
-metadata <- read.csv(here("Output", "COI.all.metadata.csv"))
-ASV.table <- read.csv(here("Output", "COI.merged.ASV.table.csv"))
+metadata <- read.csv(here("Output", "dada2_output_files", "COI.all.metadata.csv"))
+ASV.table <- read.csv(here("Output", "dada2_output_files", "COI.merged.ASV.table.csv"))
+Hash.key <- read.csv(here("Output", "dada2_output_files", "COI.hash.key.csv"))
+
+# for now make technical replicates a "sample" under type so we can do the tag jumping and removing kangaroo before looking at technical replicates
+metadata[metadata$Type == "tech_rep",]$Type <- "sample"
 
 ```
 
@@ -36,51 +45,12 @@ metadata %>%
   arrange(desc(tot)) 
 # Samples only appear once - that is good news so move on
 
-# # We should change Tag_1 for Tag_01
-# metadata %>%
-#   mutate(Index.number = case_when(str_detect(Index.number, "[0-9]{1}$")       ~     str_replace(Index.number, "Tag_", "Tag_0"),
-#                          TRUE                                  ~     Index.number  )) -> metadata
-# metadata %>% mutate(x= str_count(sample_id, pattern = "_")) %>% arrange(desc(x)) 
-   
-# ASV.table %>% distinct(Sample_name) %>% mutate(x= str_count(Sample_name, pattern = "_")) %>% arrange(desc(x)) # Also in the ASV table
-# # Fix it here
-# metadata %>% mutate(x= str_count(sample_id, pattern = "_")) %>%
-#   mutate(sample_id = case_when(x == 2 ~ str_replace(sample_id, pattern = "_B", replacement = "B"),
-#                                TRUE   ~ sample_id)) %>% 
-#   dplyr::select(-x) -> metadata
-# ASV.table %>% mutate(x= str_count(sample, pattern = "_")) %>%
-#   mutate(sample = case_when(x == 2 ~ str_replace(sample, pattern = "_B", replacement = "B"),
-#                                TRUE   ~ sample)) %>% 
-#   dplyr::select(-x) -> ASV.table 
-# # Done
-# # Change Kangaroo.4 for Kangaroo.3. Also Change Ostrich1 Ostrich2 and Ostrich3 for .1, .2 .3
-# metadata %>% 
-#   mutate (sample_id = case_when (str_detect(sample_id, "Ostrich[123]") ~ str_replace(sample_id, "Ostrich", "Ostrich\\."),
-#                                  sample_id == "Kangaroo.4"             ~ "Kangaroo.3",
-#                                  TRUE                                  ~ sample_id)) -> metadata
-# ASV.table %>%
-#   mutate (sample = case_when (str_detect(sample, "Ostrich[123]") ~ str_replace(sample, "Ostrich", "Ostrich\\."),
-#                                  sample == "Kangaroo.4"          ~ "Kangaroo.3",
-#                                  TRUE                            ~ sample)) -> ASV.table
-# # DONE
-# # Add underscore to run3
-# ASV.table %>% 
-#   filter(str_detect(sample, "[A-Z][A-Z]2017")) %>% 
-#   distinct(Miseq_run) # it only affects one run
-# ASV.table %>% 
-#   mutate (sample = case_when(str_detect(sample, "[A-Z][A-Z]2017")    ~    str_replace(sample,"2017", "_2017" ),
-#                              TRUE                                    ~    sample)) -> ASV.table
-# # ASV table from Run 1 has the full date instead of just YYYYMM
-# ASV.table %>% 
-#   filter(str_detect(sample, "_[:digit:]{8}")) # YES
-# ASV.table %>% 
-#   mutate(sample = case_when(str_detect(sample, "_[:digit:]{8}")    ~  paste0(str_replace(sample, "_[:digit:]{8}", str_extract(sample,"_[:digit:]{6}" ))),
-#                             TRUE                                   ~  sample)) -> ASV.table
-# # in MiSeqRun1, there are duplicated entries of some Hash / sample combos, probably bc we combined the Miseq and MiSeq nano runs
-# ASV.table %>% 
-#   group_by(Miseq_run, sample, Hash) %>% 
-#   summarise(nReads = sum(nReads)) %>% 
-#   ungroup -> ASV.table
+
+# ### SUBSET WHILE WORKING ON THIS
+# ASV.table1 <- ASV.table[1:10000,]
+# ASV.table2 <- ASV.table[ASV.table$Sample_name == 94 ,]
+# ASV.table <- rbind(ASV.table1, ASV.table2)
+
 ```
 
 The output of this process are a clean ASV table and a clean metadata file.
@@ -90,7 +60,7 @@ The output of this process are a clean ASV table and a clean metadata file.
 Before we modify our datasets on any way, we can calculate how many sequences that were only supposed to be in the positives control appeared in the environmental samples, and how many did the opposite. First we divide the dataset into positive control and environmental samples. Also create an ordered list of the Hashes present in the positive controls, for ease of plotting
 
 ```{r split into two}
-# first we need to rename the ASV table column from Sample_name to Sample.number
+# first we need to rename the ASV table column from Sample_name to Sample.name
 names(ASV.table)[names(ASV.table)=="Sample_name"] <- "Sample.number"
 
 # then we can add on the sample name and type of sample by comparing sample numbers
@@ -102,6 +72,7 @@ ASV.table %>%
   summarise(tot = sum(nReads)) %>% 
   arrange(desc(tot)) %>% 
   pull(Hash) -> good.order
+
 ```
 
 Now let's create a jumping vector. What proportion of the reads found in the positives control come from elsewhere, and what proportion of the reads in the samples come from the positives control.
@@ -122,9 +93,9 @@ ASV.table %>%
 That wasn't too complicated. Let's start a summary function that keeps track of our cleaning process
 
 ```{r summary.file}
-how.many <- function(ASVtable, round){
-  ASVtable %>% ungroup() %>% 
-    summarise(nsamples = n_distinct(sample),
+how.many <- function(ASV.table, round){
+  ASV.table %>% ungroup() %>% 
+    summarise(nsamples = n_distinct(Sample.name),
               nHashes = n_distinct(Hash),
               nReads = sum(nReads), 
               Stage = paste0("Step_", round)) %>% 
@@ -132,7 +103,7 @@ how.many <- function(ASVtable, round){
 }
 
 ASV.nested %>% 
-  transmute(Summary = map(sample, ~ how.many(ASVtable = .,round = 0)))  -> ASV.summary
+  transmute(Summary = map(sample, ~ how.many(ASV.table = .,round = 0)))  -> ASV.summary
 ```
 
 ### Step 2: Model the composition of the positive controls of each run 
@@ -144,53 +115,55 @@ We create a vector of the composition of each positive control and substract it 
 
 ```{r jumping vector}
 ASV.nested %>% 
-  mutate (contam.tibble = map(Positives, 
+  mutate (contam.tibble = map(kangaroo, 
                               function(.x){
                                 .x %>%
-                                  group_by(sample) %>%
+                                  group_by(Sample.name) %>%
                                   mutate (TotalReadsperSample = sum(nReads)) %>%
                                   mutate (proportion = nReads/TotalReadsperSample) %>%
                                   group_by (Hash) %>%
                                   summarise (vector_contamination = max (proportion))
                                 }) ) -> ASV.nested
 ASV.nested %>% 
-  group_by(Miseq_run) %>% 
+  group_by(Sequencing.run) %>% 
   select(contam.tibble) %>% 
   unnest(cols = contam.tibble) # Check how it looks like
 ```
 
 
-### Step 3: Substract the composition of the positive controls from the environment samples
+### Step 3: Substract the composition of the positive controls from the environmental samples
 
-The idea behind this procedure is that we know, for each run, how many reads from each Hash appeared in teh positive controls. These come from 2 processes: sequences we know should appear in the positive controls, and sequences that have *jumped* from the environment to the positive controls. With this procedure, we substract from every environmental sample the proportion of reads that jumped from elsewhere.
+The idea behind this procedure is that we know, for each run, how many reads from each Hash appeared in the positive controls. These come from 2 processes: sequences we know should appear in the positive controls, and sequences that have *jumped* from the environment to the positive controls. With this procedure, we subtract from every environmental sample the proportion of reads that jumped from elsewhere.
 
 ```{r cleaning step 1}
 ASV.nested %>% 
-  mutate(cleaned.tibble = map2(Samples, contam.tibble, function(.x,.y){ 
+  mutate(cleaned.tibble = map2(sample, contam.tibble, function(.x,.y){ 
     .x %>%
-      group_by (sample) %>%
+      group_by (Sample.name) %>%
       mutate (TotalReadsperSample = sum (nReads)) %>%
       left_join(.y, by = "Hash") %>%
       mutate (Updated_nReads = ifelse (!is.na(vector_contamination),  nReads - (ceiling(vector_contamination*TotalReadsperSample)), nReads)) %>%
       filter (Updated_nReads > 0) %>%
       ungroup() %>% 
-      dplyr::select (sample, Hash, nReads = Updated_nReads)
-      
-    
-  })) -> ASV.nested
+      dplyr::select (Sample.name, Hash, nReads = Updated_nReads)
+        })) -> ASV.nested
+
+
 ASV.nested %>% 
-  group_by(Miseq_run) %>% 
+  group_by(Sequencing.run) %>% 
   select(cleaned.tibble) %>% 
   unnest(cleaned.tibble) #Check how they look
 ```
 Add this step to the summary table we were creating
 
 ```{r summary.file.2}
+
 ASV.nested %>% 
-  transmute( Summary.1 = map(cleaned.tibble, ~ how.many(ASVtable = .,round = "1.Jump"))) %>% 
+  transmute( Summary.1 = map(cleaned.tibble, ~ how.many(ASV.table = .,round = "1.Jump"))) %>% 
   left_join(ASV.summary) %>% 
   mutate(Summary   = map2(Summary, Summary.1, bind_rows)) %>%
   dplyr::select(-Summary.1) -> ASV.summary 
+
 ```
 
 ## Cleaning Process 2: **Discarding PCR replicates with low number of reads**
@@ -199,28 +172,37 @@ We will fit the number of reads assigned to each sample to a normal distribution
 
 ```{r fitting nReads per sample}
 ASV.nested %>% 
-  select(Miseq_run,cleaned.tibble) %>% 
+  select(Sequencing.run,cleaned.tibble) %>% 
   unnest(cleaned.tibble) %>% 
-  group_by(sample) %>%
+  group_by(Sample.name) %>%
   summarise(tot = sum(nReads)) -> all.reps
+
 # Visualize
 all.reps %>%  
   pull(tot) -> reads.per.sample
-names(reads.per.sample) <- all.reps %>% pull(sample)  
+
+names(reads.per.sample) <- all.reps %>% pull(Sample.name)  
+
 normparams.reads <- MASS::fitdistr(reads.per.sample, "normal")$estimate
+
 all.reps %>%  
   mutate(prob = pnorm(tot, normparams.reads[1], normparams.reads[2])) -> all.reps
+
 #  probs <- pnorm(all_pairwise_distances, normparams[1], normparams[2])
+
 outliers <- 
   all.reps %>% 
   filter(prob < 0.075 & tot < normparams.reads[1])
+
 ASV.nested %>% 
   mutate(Step.1.low.reads = map (cleaned.tibble, ~ filter(.,!sample %in% outliers$sample) %>% ungroup)) -> ASV.nested
+
 ASV.nested %>% 
-  transmute( Summary.1 = map(Step.1.low.reads, ~ how.many(ASVtable = .,round = "2.Low.nReads"))) %>% 
+  transmute( Summary.1 = map(Step.1.low.reads, ~ how.many(ASV.table = .,round = "2.Low.nReads"))) %>% 
   left_join(ASV.summary) %>% 
   mutate(Summary   = map2(Summary, Summary.1, bind_rows)) %>%
   dplyr::select(-Summary.1) -> ASV.summary 
+
 ```
 
 
@@ -241,41 +223,48 @@ We will divide that process in two: first . A second step would be to create a c
 ```{r real or positive}
 ASV.table %>% 
   filter (Hash %in% good.order) %>%
-  group_by(sample) %>% 
+  group_by(Sample.name) %>% 
   mutate(tot.reads = sum(nReads)) %>% 
-  group_by(Hash,sample) %>% 
+  group_by(Hash,Sample.name) %>% 
   mutate(prop = nReads/tot.reads) %>% 
-  group_by(Hash, source) %>% 
+  group_by(Hash, Type) %>% 
   summarise (max.  = max(prop),
              mean. = mean(prop),
              tot.  = sum(nReads)) %>% 
   gather(contains("."), value = "number", key = "Stat") %>%
-  spread(key = "source", value = "number", fill = 0) %>% 
+  spread(key = "Type", value = "number", fill = 0) %>% 
   group_by(Hash, Stat) %>%
-  mutate(origin = case_when(Positives > Samples ~ "Positive.control",
+  mutate(origin = case_when(kangaroo > sample ~ "Positive.control",
                             TRUE                ~ "Environment")) %>% 
   group_by (Hash) %>%
   mutate(tot = n_distinct(origin)) -> Hash.fate.step2
+
 Hash.fate.step2 %>% 
   filter(tot == 1) %>% 
   group_by(Hash) %>% 
   summarise(origin = unique(origin)) %>% 
   filter(origin == "Positive.control") -> Hashes.to.remove.step2
+
 ASV.table %>% 
-  group_by(source, Hash) %>% 
+  group_by(Type, Hash) %>% 
   summarise(ocurrences =n()) %>% 
-  spread(key = source, value = ocurrences, fill = 0) %>% 
+  spread(key = Type, value = ocurrences, fill = 0) %>% 
   #left_join(Hashes.to.remove.step2) %>% 
   #mutate(origin = case_when(is.na(origin) ~ "Kept",
    #                         TRUE          ~ "Discarded")) %>% 
-  mutate(second.origin = case_when(Positives >= Samples ~ "Discarded",
+  mutate(second.origin = case_when(kangaroo >= sample ~ "Discarded",
                                    TRUE                 ~ "Kept")) %>% 
   filter(second.origin == "Discarded") %>% 
   full_join(Hashes.to.remove.step2) -> Hashes.to.remove.step2
-Hashes.to.remove.step2 %>% 
-  bind_rows(tibble(Hash = c("01204d587a3c3752f426f2f6d813c0ff2b80ec8b",
-                            "acebcd5c491bb273f3e4d615cafad649"))) -> Hashes.to.remove.step2
+
+## commented out what Ramon had here
+# Hashes.to.remove.step2 %>% 
+#   bind_rows(tibble(Hash = c("01204d587a3c3752f426f2f6d813c0ff2b80ec8b",
+#                             "acebcd5c491bb273f3e4d615cafad649"))) -> Hashes.to.remove.step2
  
+## i think we need to remove the technical replicates before this step... it is confusing the sample identifitaction
+## for now, go back and make all of those samples not technical replicates and rerun the code 
+
 ```
 IN order to train DADA2 to better distinguish when positive control sequences have arrived in the environment, we will keep the sequences in a csv file
 
@@ -284,7 +273,8 @@ IN order to train DADA2 to better distinguish when positive control sequences ha
 Hashes.to.remove.step2 %>% 
   left_join(Hash.key) %>% 
   select(Hash, Sequence) %>% 
-  write_csv("../Output/Hashes.to.remove.csv")
+  write_csv(here("Output", "denoising_files","COI.hashes.to.remove.csv"))
+
 ```
 
 ### Remove the positive control hashes from the composition of the ASVs
@@ -292,24 +282,28 @@ Hashes.to.remove.step2 %>%
 ```{r cleaning.Step2}
 ASV.nested %>% 
   mutate(Step2.tibble = map (Step.1.low.reads, ~ filter(.,!Hash %in% Hashes.to.remove.step2$Hash) %>% ungroup)) -> ASV.nested
-saveRDS(ASV.nested, file = "../Input/Cleaning.before.Occ.model")
-ASV.nested <- readRDS(file ="../Input/Cleaning.before.Occ.model")
+
+saveRDS(ASV.nested, file = here("Output", "denoising_files", "COI.Cleaning.before.Occ.model"))
+
+ASV.nested <- readRDS(file = here("Output", "denoising_files", "COI.Cleaning.before.Occ.model"))
+
 ASV.nested %>% 
-  transmute( Summary.1 = map(Step2.tibble, ~ how.many(ASVtable = .,round = "3.Positives"))) %>% 
+  transmute( Summary.1 = map(Step2.tibble, ~ how.many(ASV.table = .,round = "3.Positives"))) %>% 
   left_join(ASV.summary) %>% 
   mutate(Summary   = map2(Summary, Summary.1, bind_rows)) %>%
-  dplyr::select(-Summary.1) -> ASV.summary 
+  dplyr::select(-Summary.1) -> ASV.summary
+
 ASV.summary %>% 
   unnest()
 ```
 
-## Cleaning Process 4: **Occupancy modelling**
+## Cleaning Process 4: **Occupancy modeling**
 
-What is the probabilty of a true positive presence of a Hash in a Miseq Run. We will use eDNA occupancy modeling to asses whether a hash is a rare variant that spilled out or a true presence.
+What is the probability of a true positive presence of a Hash in a Miseq Run. We will use eDNA occupancy modeling to asses whether a hash is a rare variant that spilled out or a true presence.
 
-The process requires to load extra packages, create some model file, and group the hashes by Run, and biological replicate, summarising the data in a presence absence format.
+The process requires to load extra packages, create some model file, and group the hashes by Run, and biological replicate, summarizing the data in a presence absence format.
 
-The occupancy model itself was performed in the Rmarkdown file `Rjags.tunning.Rmd`, so here we will upload the csv file that contains all probability of occurences of all hashes per site. Each Hash-Site combination produces a matrix of presence abascences that feeds the model - for some cases it is a 30x3 matrix, for others it is a 39x3. We summarised the number of occurences in each case and run models for each unique case (to save computing time). Each unique model was run 10 times to filter out cases in which the model converge into a local maxima.
+The occupancy model itself was performed in the Rmarkdown file `Rjags.tunning.Rmd`, so here we will upload the csv file that contains all probability of occurrences of all hashes per site. Each Hash-Site combination produces a matrix of presence absences that feeds the model - for some cases it is a 30x3 matrix, for others it is a 39x3. We summarized the number of occurrences in each case and run models for each unique case (to save computing time). Each unique model was run 10 times to filter out cases in which the model converge into a local maxima.
 
 So we will import the object `Occ.fate.csv` and reduce the dataset to those Hashes with an occ > 0.8
 
