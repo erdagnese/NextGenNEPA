@@ -144,12 +144,12 @@ Using insect, classify sequences from the Dada2 output
 
 #### Output
 - taxonomy table (hashes, assigned taxonomy with levels as columns)
-- taxon table (taxa as rows, samples as columns, values are number of reads)
+- taxon table (taxa as rows, samples as columns, values are number of reads) - **DO WE WANT THIS IN THIS SCRIPT OR DO WE WANT IT SEPARATE**
 
 #### DO WE WANT TO HAVE A STEP WHERE WE MERGE DATA FROM MULTIPLE LOCI? 
 
 ### 5. Exploratory plotting and data analysis  
-
+**phyloseq and other R scripts for div and other metrics?**
 #### Scripts used
 #### Input
 #### Process
