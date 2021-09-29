@@ -1,0 +1,8 @@
+Parameters,Values
+folder,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA_LOCAL_cutadapt_dada2/Output/run2_20210928/noprimers/MiFish
+hash,TRUE
+trimming.length.Read1,150
+trimming.length.Read2,150
+metadata,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA_LOCAL_cutadapt_dada2/Output/run2_20210928/noprimers/MiFish/run2_cutadapt_output_metadata_MiFish.csv
+output.folder,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA_LOCAL_cutadapt_dada2/Output/run2_20210928/
+keep.mid.files,TRUE
