@@ -169,11 +169,13 @@ Summary.thresholds %>%
 
 now we want to make a tax.table for use in the phyloseq object
 ```{r using tax.table.R to make a tax table}
+combined <- rbind(previous.effort,clasif.hashes)
 #need to make this line not contigent on local directory
 source(here("functions", "tax.table.R"))
 
-taxtable <- tax.table(clasif.hashes)
+taxtable <- tax.table(combined)
+
 #make this a save as rds and save it in the github output folder 
-write.csv(taxtable, "taxtable.csv")#save it in the local directory for any future needs
+write.csv(taxtable, "20211011taxtable.csv")#save it in the local directory for any future needs
 ```
 
