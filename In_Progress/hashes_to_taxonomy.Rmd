@@ -5,11 +5,11 @@ date: "6/1/2021"
 output: html_document
 params: 
   folder:
-    value: C:\Users\erdag\NextGenNEPA_local\insect_output_files\testrun 
+    value: C:\Users\erdag\NextGenNEPA_local\insect_output_files\run2_rerun_20211008 
   Hash_key:
-    value: C:\Users\erdag\Documents\NextgenNEPA\analysis\test_run_20210527\MiFishMam.outputs\hash_key.csv
+    value: C:\Users\erdag\github\NextgenNEPA\Output\dada2_output_files\run2_rerun_20211008\MiFish_hash_key.csv
   ASVs: 
-    value: C:\Users\erdag\Documents\NextgenNEPA\analysis\test_run_20210527\MiFishMam.outputs\ASV_table.csv
+    value: C:\Users\erdag\github\NextgenNEPA\Output\dada2_output_files\run2_rerun_20211008\MiFish_ASV_table.csv
   classifier:
     value: C:\Users\erdag\NextGenNEPA_local\classifiers\classifier_12S_MiFish.rds  
   
@@ -41,7 +41,7 @@ tree.2   <- read_rds(params$classifier)
 
 #bringing in the previous annotated run to start from and add to
 
-previous.effort <- read_rds(here("Output", "insect_output_files", "12S_testrun", "hashes.annotated.rds"))
+previous.effort <- read_rds(here("NextGenNEPA_local", "insect_output_files", "12S_testrun", "hashes.annotated.rds"))
 
 ```
 
@@ -171,7 +171,7 @@ Summary.thresholds %>%
 now we want to make a tax.table for use in the phyloseq object
 ```{r using tax.table.R to make a tax table}
 #need to make this line not contigent on local directory
-source(here("functions", "tax.table.R"))
+source(here("github","NextGenNEPA","functions", "tax.table.R"))
 
 taxtable <- tax.table(clasif.hashes)
 #make this a save as rds and save it in the github output folder 
