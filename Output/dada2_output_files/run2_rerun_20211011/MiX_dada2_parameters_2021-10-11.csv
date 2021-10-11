@@ -1,0 +1,8 @@
+Parameters,Values
+folder,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA_LOCAL_cutadapt_dada2/Output/run2_rerun_20211011/noprimers/MiX
+hash,TRUE
+trimming.length.Read1,150
+trimming.length.Read2,150
+metadata,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA_LOCAL_cutadapt_dada2/Output/run2_rerun_20211011/noprimers/MiX/run2_cutadapt_output_metadata_MiX.csv
+output.folder,/Users/elizabethandruszkiewicz/GoogleDrive/UW/GitHub/NextGenNEPA_LOCAL_cutadapt_dada2/Output/run2_rerun_20211011/
+keep.mid.files,TRUE
