@@ -29,9 +29,9 @@ source(here("functions", "tax.table.R"))
 
 load the taxonomy file from the project file
 ```{r}
-tax.input <- read_rds(here("Output","insect_output_files", "12S_testrun", "hashes.annotated.rds"))
-asv.mat <- read_csv(here("Output", "ASV_metadata", "test_run_20210527", "12S", "ASV_table.csv"))
-metadata <- read_csv(here("Output", "ASV_metadata", "test_run_20210527", "20210528_testseq_creek_metadata.csv"))
+tax.input <- read_rds(here("Output","hashes_to_taxonomy_output", "rerun_2_crux", "MiFish", "hashes.annotated.rds"))
+asv.mat <- read_csv(here("Output", "dada2_output_files", "run2_rerun_20211008", "MiFish_ASV_table.csv"))
+metadata <- read_csv(here("Output", "dada2_output_files", "run2_rerun_20211008", "MiFish_metadata.csv"))
 ```
 ONLY USE THIS FOR THE 12S ASV TABLE IF THEY AREN'T SPLIT
 ```{r}

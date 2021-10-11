@@ -5,7 +5,7 @@ date: "6/1/2021"
 output: html_document
 params: 
   folder:
-    value: C:\Users\erdag\NextGenNEPA_local\insect_output_files\run2_rerun_20211008 
+    value: C:\Users\erdag\NextGenNEPA_local\insect_output_files\run2_rerun_crux_20211008 
   Hash_key:
     value: C:\Users\erdag\github\NextgenNEPA\Output\dada2_output_files\run2_rerun_20211008\MiFish_hash_key.csv
   ASVs: 
