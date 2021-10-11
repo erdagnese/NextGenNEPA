@@ -5,15 +5,14 @@ date: "6/1/2021"
 output: html_document
 params: 
   folder:
-    value: C:\Users\erdag\NextGenNEPA_local\insect_output_files\run2_rerun_crux_20211008 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun_crux\MiX 
   Hash_key:
-    value: C:\Users\erdag\github\NextgenNEPA\Output\dada2_output_files\run2_rerun_20211008\MiFish_hash_key.csv
+    value: C:\Users\erdag\github\NextgenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_hash_key.csv
   ASVs: 
-    value: C:\Users\erdag\github\NextgenNEPA\Output\dada2_output_files\run2_rerun_20211008\MiFish_ASV_table.csv
+    value: C:\Users\erdag\github\NextgenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_ASV_table.csv
   classifier:
     value: C:\Users\erdag\NextGenNEPA_local\classifiers\classifier_12S_MiFish.rds  
-  
-       
+ 
 ---
 
 Classifying the Dada2 output sequences using the classifier created using insect from the CRUX reference databases
@@ -40,9 +39,7 @@ ALL.ASVs <- read_csv(params$ASVs)
 tree.2   <- read_rds(params$classifier)
 
 #bringing in the previous annotated run to start from and add to
-
-previous.effort <- read_rds(here("NextGenNEPA_local", "insect_output_files", "12S_testrun", "hashes.annotated.rds"))
-
+previous.effort <- read_rds(here("Ouput","hashes_to_taxonomy_output", "20210802_MiFish_prev_hashes.annotated.rds"))
 ```
 
 So these sequences are in the same direction, and they have some shared and some new sequences. 
