@@ -63,7 +63,7 @@ jags_for_presence <- function(.x){
     transmute( model =  map_dbl (data,
                              function(.y, doprint=FALSE, ni=3000,nt=2,nc=1,nb=1000,myparallel=TRUE){
                                
-                               .y %>% ungroup %>% dplyr::select(-biol) -> .y # Reduce the tibble to just the presence/abs matrix
+                               .y %>% ungroup %>% dplyr::select(-creek_stn) -> .y # Reduce the tibble to just the presence/abs matrix
                                
                                jags.inits <- function()(list(psi=runif(1,0.05,0.95),p11=runif(1, 0.01,1),p10=rbeta(1,1,50))) # generates three random starting estimates of psi, p11 and p10
                                jags.data <- list (Y= .y,
@@ -110,17 +110,23 @@ My conclusions from that exercise are:
 So we will start by creating two objects, one is the nested dataframe that has the 261*3 matrices, and the other one is the reduced information with the pattern of replication
 ```{r}
 # Load the dataset
-ASV.nested <- read_rds(here("Input","Cleaning.before.Occ.model"))
+ASV.nested <- read_rds(here("Output", "denoising_files", "COI.Cleaning.before.Occ.model"))
+
+
 # Split by site
 ASV.nested %>% 
   ungroup() %>% 
   select(Step2.tibble) %>% 
   unnest(Step2.tibble) %>%
   ungroup() %>% 
-  separate(sample, into = c("biol","rep"), sep = "\\.") %>%
-  separate(biol, into = c("Site", "biol")) %>% 
-  group_by(Site) %>% 
+  separate(Sample.name, into = c("creek_stn","rep_date"), sep = 5) %>%
+  #separate(creek_stn_rep, into = c("creek_stn", "bio_rep", sep = 5)) %>% 
+  group_by(creek_stn) %>% 
   nest() -> nested.by.site
+
+# REMOVE PADDEN UP FOR NOW BECAUSE ITS JACKING UP THE SPLITTING - PADUP11 AND PADUP5 ARE MORE THAN 5 CHARACTERS
+# ALSO REMOVE PADDEN AND CHUCKANUT BECAUSE TWO MONTHS RIGHT NOW - SO REALLY JUST TRY THIS WITH PORTAGE AND SQUALICUM
+nested.by.site <- nested.by.site[1:4, , drop=TRUE] 
 
 # For each Hash - calculate the pattern of replication
 
@@ -128,12 +134,13 @@ nested.by.site %>%
   mutate(data = map(data,  function(.y){
         .y %>% 
           mutate (nReads = 1) %>% 
-  spread(key = "rep", value = "nReads", fill= 0,drop = F) %>% 
-      mutate (ndetections = `1`+`2`+`3`) %>% 
+  spread(key = "rep_date", value = "nReads", fill= 0,drop = F) %>% 
+      mutate (ndetections = `1.0321`+`2.0321`+`3.0321`) %>% 
       group_by(ndetections, Hash) %>% 
       summarise(tot = sum(!is.na(ndetections)))
 
       })) -> nested.by.site
+
 # And finally calculate the pattern of presence
 nested.by.site %>% 
   unnest() %>% 
@@ -144,47 +151,53 @@ nested.by.site %>%
 Pattern.of.presence %>% 
   group_by(repetition.level) %>%
   summarise(first = head(Hash,1),
-            Site =  head(Site,1)) %>%
-  unite(Site,first,col = "key", sep = ".", remove = F)-> unique.by.site
+            creek_stn =  head(creek_stn,1)) %>%
+  unite(creek_stn,first,col = "key", sep = ".", remove = F)-> unique.by.site
 
 # Subset 
  ASV.nested %>% 
-   ungroup() %>% 
-   select(Step2.tibble) %>% 
+  ungroup() %>% 
+  select(Step2.tibble) %>% 
   unnest(Step2.tibble) %>% 
   ungroup() %>% 
-  separate(sample, into = c("biol","rep"), sep = "\\.") %>%
-  separate(biol, into = c("Site", "biol")) %>% 
-  group_by(Site) %>% 
+  separate(Sample.name, into = c("creek_stn","rep_date"), sep = 5) %>%
+  #separate(creek_stn_rep, into = c("creek_stn", "bio_rep", sep = 5)) %>% 
+  group_by(creek_stn) %>% 
   nest() %>% 
   mutate(data = map(data,
                     function(.y){
                       .y %>% 
                         mutate (nReads = 1) %>% 
-                        spread(key = "rep", value = "nReads", fill= 0,drop = F)
+                        spread(key = "rep_date", value = "nReads", fill= 0,drop = F)
   })) %>% 
   unnest() %>% 
-  unite(Site, Hash, col = "key", sep = ".", remove = F) %>% 
+  unite(creek_stn, Hash, col = "key", sep = ".", remove = F) %>% 
 # Select one  
   filter(key %in% unique.by.site$key) %>% 
-  select(-key) %>% group_by(Site, Hash) %>% 
+  select(-key) %>% group_by(creek_stn, Hash) %>% 
   nest %>% 
-  group_by(Site) %>% 
+  group_by(creek_stn) %>% 
   nest -> like.this 
 ```
+
+
 Finally - run it ten times
+
+
 ```{r}
 like.this %>% 
   mutate(Hashes = map (data , ~select(.x, Hash))) -> like.this
+
 # Run 10 times
 for (i in 1:10){
   like.this <- model.round.nested(like.this, n = i)
 }
+
 like.this %>% mutate(model.10chain = map(data, jags_for_presence)) -> all.combos.10chain
 
-all.combos.10chain %>% write_rds(here("Input", "10chain.rds"))
+all.combos.10chain %>% write_rds(here("Ouput", "denoising_files", "COI.10chain.rds"))
 
-all.combos.10chain <- read_rds(here("Input", "10chain.rds"))
+all.combos.10chain <- read_rds(here("Ouput", "denoising_files", "COI.10chain.rds"))
 
 all.combos.10chain %>% unnest(cols = c(Hashes, starts_with("model")), names_repair = "unique") -> row.df
 
