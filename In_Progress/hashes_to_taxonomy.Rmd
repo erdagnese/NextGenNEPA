@@ -7,11 +7,13 @@ params:
   folder:
     value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun_crux\MiX 
   Hash_key:
-    value: C:\Users\erdag\github\NextgenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_hash_key.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_hash_key.csv
   ASVs: 
-    value: C:\Users\erdag\github\NextgenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_ASV_table.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_ASV_table.csv
   classifier:
-    value: C:\Users\erdag\NextGenNEPA_local\classifiers\classifier_12S_MiFish.rds  
+    value: C:\Users\erdag\NextGenNEPA_local\classifiers\classifier_12S_MiFish.rds
+  previous_effort: 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\20210802_MiFish_prev_hashes.annotated.rds
  
 ---
 
@@ -39,7 +41,7 @@ ALL.ASVs <- read_csv(params$ASVs)
 tree.2   <- read_rds(params$classifier)
 
 #bringing in the previous annotated run to start from and add to
-previous.effort <- read_rds(here("Ouput","hashes_to_taxonomy_output", "20210802_MiFish_prev_hashes.annotated.rds"))
+previous.effort <- read_rds(params$previous_effort)
 ```
 
 So these sequences are in the same direction, and they have some shared and some new sequences. 
@@ -168,7 +170,7 @@ Summary.thresholds %>%
 now we want to make a tax.table for use in the phyloseq object
 ```{r using tax.table.R to make a tax table}
 #need to make this line not contigent on local directory
-source(here("github","NextGenNEPA","functions", "tax.table.R"))
+source(here("functions", "tax.table.R"))
 
 taxtable <- tax.table(clasif.hashes)
 #make this a save as rds and save it in the github output folder 
