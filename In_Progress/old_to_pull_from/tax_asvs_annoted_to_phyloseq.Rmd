@@ -52,8 +52,10 @@ Making the ASV table into a matrix
 asv.mat <- asv.matrix(asv.mat)
 ```
 
-making annoted hashes into the taxtable
+making annotated hashes into the taxtable
 ```{r}
+#first reorder so that taxon is after species
+tax.input <- tax.input %>% relocate(taxon, .after = species)
 tax.mat <- tax.table(tax.input)
 ```
 making a phyloseq object from the input
@@ -61,4 +63,26 @@ making a phyloseq object from the input
 phylo <- make.phyloseq.obj(asv.mat, metadata, tax.mat)
 ```
 
+check that things are working with a barplot
+```{r}
+plot_bar(phylo, fill = "family")
+```
+
+filter out the bacteria and uncharacterized/no rank ASVs
+```{r}
+phylo <- subset_taxa(phylo, !is.na(kingdom) & !kingdom %in% c("","no rank", "uncharacterized"))
+```
+
+check again to make sure they were removed
+```{r}
+plot_bar(phylo, fill = "kingdom")
+```
+
+
 then collapse to taxon and produce an OTU table to be combined with other run OTU tables later
+```{r}
+taxon_glom <- tax_glom(phylo, taxrank = "taxon")
+#check that it kept all the column data
+
+```
+
