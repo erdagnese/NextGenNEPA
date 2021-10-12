@@ -170,7 +170,7 @@ Summary.thresholds %>%
 now we want to make a combined rds file with the previous effort and the new one then a tax.table for use in the phyloseq object
 ```{r using tax.table.R to make a tax table}
 combined <- rbind(previous.effort,clasif.hashes)
-saveRDS(combined, file=paste (Sys.Date(),"hashes.annotated.rds"))
+saveRDS(combined, file=paste0(Sys.Date(),"hashes.annotated.rds"))
 #need to make this line not contigent on local directory
 source(here("functions", "tax.table.R"))
 
