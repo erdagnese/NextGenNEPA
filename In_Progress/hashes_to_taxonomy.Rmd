@@ -2,7 +2,9 @@
 title: "hashes_to_taxonomy"
 author: "Erin D'Agnese"
 date: "6/1/2021"
-output: html_document
+output:   
+  html_notebook:
+    toc: true
 params: 
   folder:
     value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun_crux\MiX 
