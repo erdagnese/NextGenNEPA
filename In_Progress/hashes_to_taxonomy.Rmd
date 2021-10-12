@@ -177,6 +177,6 @@ source(here("functions", "tax.table.R"))
 taxtable <- tax.table(combined)
 
 #make this a save as rds and save it in the github output folder 
-write.csv(taxtable, "20211011taxtable.csv")#save it in the local directory for any future needs
+write.csv(taxtable,file=paste0(Sys.Date(),"taxtable.csv"))#save it in the local directory for any future needs
 ```
 
