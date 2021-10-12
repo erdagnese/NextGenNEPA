@@ -2,11 +2,23 @@
 title: "tax_asvs_to_phyloseq"
 author: "Erin D'Agnese"
 date: "8/2/2021"
-output: html_document
+output: 
+  html_notebook:
+    toc: true
+params:
+  folder:
+    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run2_rerun\MiX 
+  hashes.annotated:
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun_crux\MiX\2021-10-11hashes.annotated.rds
+  ASV: 
+   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_ASV_table.csv
+  metadata:
+      value: C:\Users\erdag\github\NextGenNEPA\Input\sequencing_metadata_files\master_sequencing_datasheet20211011.csv
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = params$folder)
 ```
 
 Need to take the hashes annotated .rds in the github outputs, use the ASV table with hashes and make it
@@ -17,7 +29,6 @@ into a phyloseq object
 library(tidyverse)
 library(here)
 library(phyloseq)
-
 ```
 load source function scripts
 ```{r}
@@ -29,9 +40,9 @@ source(here("functions", "tax.table.R"))
 
 load the taxonomy file from the project file
 ```{r}
-tax.input <- read_rds(here("Output","hashes_to_taxonomy_output", "rerun_2_crux", "MiFish", "hashes.annotated.rds"))
-asv.mat <- read_csv(here("Output", "dada2_output_files", "run2_rerun_20211008", "MiFish_ASV_table.csv"))
-metadata <- read_csv(here("Output", "dada2_output_files", "run2_rerun_20211008", "MiFish_metadata.csv"))
+tax.input <- read_rds(params$hashes.annotated)
+asv.mat <- read_csv(params$ASV)
+metadata <- read_csv(params$metadata)
 ```
 ONLY USE THIS FOR THE 12S ASV TABLE IF THEY AREN'T SPLIT
 ```{r}
@@ -41,9 +52,10 @@ asv_mam <- asv.mat[asv.mat$Locus =="MiMammal",]
 asv.mat <- asv_fish
 ```
 
-Select out the metadata for the locus of choice
+Select out the metadata for the correct run locus of choice
 ```{r}
-metadata <- metadata[metadata$locus == "MiFish",]
+metadata <- metadata[metadata$Sequencing.run == "2",]
+metadata <- metadata[metadata$Locus == "MiFish",]
 ```
 
 
