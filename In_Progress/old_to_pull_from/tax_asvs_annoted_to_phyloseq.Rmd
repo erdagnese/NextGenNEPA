@@ -53,10 +53,11 @@ asv_mam <- asv.mat[asv.mat$Locus =="MiMammal",]
 
 ```
 
-Select out the metadata for the correct run locus of choice
+Select out the metadata for the correct run and locus of choice
 ```{r}
 metadata <- metadata[metadata$Sequencing.run == "2",]
-#metadata <- metadata[metadata$Locus == "MiFish",]
+metadata <- metadata[metadata$Locus == "MiFish",]
+metadata <- metadata[metadata$Locus == "MiMammal",]
 metadata <- metadata[metadata$Locus == "COI",]
 ```
 
@@ -99,4 +100,6 @@ taxon_glom <- tax_glom(phylo, taxrank = "taxon")
 #check that it kept all the column data
 
 ```
+
+
 

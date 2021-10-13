@@ -7,15 +7,15 @@ output:
     toc: true
 params: 
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun_crux\MiX 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun\COI\COI_fwds 
   Hash_key:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_hash_key.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211013\COI_fwds_hash_key.csv
   ASVs: 
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_ASV_table.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211013\COI_fwds_ASV_table.csv
   classifier:
-    value: C:\Users\erdag\NextGenNEPA_local\classifiers\classifier_12S_MiFish.rds
+    value: C:\Users\erdag\NextGenNEPA_local\classifiers\classification.tree.coi.leray.v5.rds
   previous_effort: 
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\20210802_MiFish_prev_hashes.annotated.rds
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\hashes.annotated.coi.2021-06-04.csv
  
 ---
 
@@ -43,7 +43,7 @@ ALL.ASVs <- read_csv(params$ASVs)
 tree.2   <- read_rds(params$classifier)
 
 #bringing in the previous annotated run to start from and add to
-previous.effort <- read_rds(params$previous_effort)
+previous.effort <- read_csv(params$previous_effort)
 ```
 
 So these sequences are in the same direction, and they have some shared and some new sequences. 
@@ -72,7 +72,7 @@ clasif.hashes %>% dplyr::count (rank) %>% arrange(desc(n))
 ```
 
 
-OK. So now let's save the classification object as an RDS and save as an .csv
+OK. So now let's save the classification object as an RDS and CSV
 
 ```{r save it for now}
 clasif.hashes %>% 
