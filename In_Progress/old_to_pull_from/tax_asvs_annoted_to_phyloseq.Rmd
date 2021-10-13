@@ -7,11 +7,11 @@ output:
     toc: true
 params:
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run2_rerun\MiX 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run2_rerun\COI 
   hashes.annotated:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun_crux\MiX\2021-10-11hashes.annotated.rds
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun\COI\2021-10-13coi.taxtable.csv
   ASV: 
-   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_ASV_table.csv
+   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211008\COI_ASV_table.csv
   metadata:
       value: C:\Users\erdag\github\NextGenNEPA\Input\sequencing_metadata_files\master_sequencing_datasheet20211011.csv
 ---
@@ -40,7 +40,7 @@ source(here("functions", "tax.table.R"))
 
 load the taxonomy file from the project file
 ```{r}
-tax.input <- read_rds(params$hashes.annotated)
+tax.input <- read_csv(params$hashes.annotated)
 asv.mat <- read_csv(params$ASV)
 metadata <- read_csv(params$metadata)
 ```
@@ -49,13 +49,15 @@ ONLY USE THIS FOR THE 12S ASV TABLE IF THEY AREN'T SPLIT
 asv_fish <- asv.mat[asv.mat$Locus =="MiFish",]
 asv_mam <- asv.mat[asv.mat$Locus =="MiMammal",]
 #lets assign mifish to asv.mat for the future work first
-asv.mat <- asv_fish
+#asv.mat <- asv_fish
+
 ```
 
 Select out the metadata for the correct run locus of choice
 ```{r}
 metadata <- metadata[metadata$Sequencing.run == "2",]
-metadata <- metadata[metadata$Locus == "MiFish",]
+#metadata <- metadata[metadata$Locus == "MiFish",]
+metadata <- metadata[metadata$Locus == "COI",]
 ```
 
 
@@ -87,7 +89,7 @@ phylo <- subset_taxa(phylo, !is.na(kingdom) & !kingdom %in% c("","no rank", "unc
 
 check again to make sure they were removed
 ```{r}
-plot_bar(phylo, fill = "kingdom")
+plot_bar(phylo, fill = "family")
 ```
 
 
