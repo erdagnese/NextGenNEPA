@@ -43,7 +43,7 @@ ALL.ASVs <- read_csv(params$ASVs)
 tree.2   <- read_rds(params$classifier)
 
 #bringing in the previous annotated run to start from and add to
-previous.effort <- read_csv(params$previous_effort)
+#previous.effort <- read_csv(params$previous_effort)
 ```
 
 So these sequences are in the same direction, and they have some shared and some new sequences. 
@@ -54,8 +54,9 @@ Let's keep only the unique sequences
 Make them into a DNAbin object for insect
 
 ```{r make it into a DNA object}
-new.set <- anti_join(Hash, previous.effort, by = c("Hash" = "representative"))
-all.hashes.insect <- char2dna(new.set$Sequence)
+#new.set <- anti_join(Hash, previous.effort, by = c("Hash" = "representative"))
+all.hashes.insect <- char2dna(Hash$Sequence)
+#all.hashes.insect <- char2dna(new.set$Sequence)
 names (all.hashes.insect) <- new.set$Hash
 all.hashes.insect
 ```
@@ -81,7 +82,9 @@ clasif.hashes %>%
 # Add new phylum info
 clasif.hashes %>% 
   mutate(phylum = case_when(phylum != "" ~ phylum,
-                            TRUE   ~ class)) 
+                            TRUE   ~ class))
+clasif.hashes %.%
+  
 saveRDS(clasif.hashes, paste0("hashes.annotated", ".rds"))
 clasif.hashes <- readRDS("hashes.annotated.rds")
 write.csv(clasif.hashes, "hashes.annotated.csv")

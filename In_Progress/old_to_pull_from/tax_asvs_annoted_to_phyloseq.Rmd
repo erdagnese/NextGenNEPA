@@ -102,4 +102,24 @@ taxon_glom <- tax_glom(phylo, taxrank = "taxon")
 ```
 
 
+making the ASV table with taxonomy rather than hashes
+```{r}
+##need to get OTU table at matrix with rows as samples and columns as taxa
+ASV1 = as(otu_table(phylo), "matrix")
+if(taxa_are_rows(phylo)){ASV1<-t(ASV1)}
+ASV.taxdf = as.data.frame(ASV1)
+head(ASV.taxdf)
+saveRDS(ASV.taxdf, file=paste0(Sys.Date(),".ASV.with.taxa.rds"))
+write.csv(ASV.taxdf, file=paste0(Sys.Date(),".ASV.with.taxa.csv"))
+```
+
+Making an agglomerated OTU table with counts by taxon
+```{r}
+OTU2 = as(otu_table(taxon_glom), "matrix")
+if(taxa_are_rows(taxon_glom)){OTU2<-t(OTU2)}
+OTU.taxdf = as.data.frame(OTU2)
+head(OTU.taxdf)
+saveRDS(OTU.taxdf, file=paste0(Sys.Date(),".ASV.with.taxa.rds"))
+write.csv(OTU.taxdf, file=paste0(Sys.Date(),".ASV.with.taxa.csv"))
+```
 
