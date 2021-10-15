@@ -93,6 +93,10 @@ for (i in 1:dim(bkwd_hashes)[1]) {
 
 fixb_all_overlap$Sequence <- rc_seq
 
+# re-hash 
+#fixb_all_overlap$Hash <- as.character(hash(fixb_all_overlap$Sequence))
+
+
 fixb_all_overlap <- all_hashes %>% inner_join(fixb_all_overlap) %>% select (Hash) %>% mutate (status = "shared") 
 # No overlap... that would be a problem... 
 
