@@ -1,1 +1,95 @@
-# plot PCAs of data
+---
+title: "rc_rehash.Rmd"
+author: "Eily Allan"
+date: "10/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+let's try plotting some PCAs to make sure things are clustering as we hope 
+
+```{r load the files where primers/adapters were put on backwards}
+library(here)
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+library(vegan)
+library(reshape2)
+library(ggplot2)
+library(RColorBrewer)
+
+metadata <- read.csv(here("Input","sequencing_metadata_files","master_sequencing_datasheet20211011.csv"), header = TRUE)
+asvs <- read.csv(here("Output","dada2_output_files","run2_rerun_20211013","COI_fwds_ASV_table.csv"))
+```
+
+## Format ASV tables (raw/index) to be used for PCAs and adonis -- and without Barnes for both
+
+```{r formatting}
+
+### Clean up the ASV table of raw reads 
+
+# first only select metadata for run 2 and mifish 
+metadata <- metadata[metadata$Sequencing.run == 2,]
+metadata <- metadata[metadata$Locus == "COI",] 
+
+# translate ASVs into table that has ASVs as rows and samples as columns 
+asv_mat <-  pivot_wider(asvs, names_from = Sample_name, values_from = nReads) 
+asv_mat <- asv_mat[,-1] # remove locus column
+asv_mat <- as.data.frame(asv_mat) # make data frame
+row.names(asv_mat) = asv_mat[,1] # make row names the ASV hash
+asv_mat = asv_mat[,-1] # remove the column with the ASV hash 
+asv_mat[is.na(asv_mat)] <- 0 # change NAs to 0s 
+
+# check kangaroo for cross-contamination/ tag jumping 
+kanga <- asv_mat[asv_mat$COI.Kangaroo.Run.2>0,]
+real_samples_kanga <- colSums(kanga) # looks good! Only 10 and 7 reads compared to 105528 in the Kangaroo 
+asv_mat = asv_mat[,-11] # now remove the kangaroo from the dataset because it will mess up the PCAs 
+metadata <- metadata[metadata$Sample_name %in% colnames(asv_mat),] # remove kangaroo
+
+```
+
+
+## Run PCA analyses (Bray and Jaccard) for both raw/index
+
+```{r PCAs}
+
+### Calculations with Barnes
+
+# PCA on raw reads - with bray curtis distance 
+pca.raw.bc.nmds <- metaMDS(t(asv_mat), distance = "bray")
+pca.raw.bc.MDS1 = pca.raw.bc.nmds$points[,1] #store nmds values
+pca.raw.bc.MDS2 = pca.raw.bc.nmds$points[,2] #store nmds values
+
+# PCA on raw reads - with jaccard distance 
+pca.raw.jac.nmds <- metaMDS(t(asv_mat), distance = "jaccard")
+pca.raw.jac.MDS1 = pca.raw.jac.nmds$points[,1] #store nmds values
+pca.raw.jac.MDS2 = pca.raw.jac.nmds$points[,2] #store nmds values
+
+raw.pca.to.plot <- cbind(metadata, pca.raw.bc.MDS1, pca.raw.bc.MDS2, pca.raw.jac.MDS1, pca.raw.jac.MDS2)
+
+```
+
+### PCA plots 
+
+```{r PCA plots}
+
+# raw reads / bray curtis
+ggplot(raw.pca.to.plot, aes(x=pca.raw.bc.MDS1, y=pca.raw.bc.MDS2)) +
+  geom_point(size=4, aes(color=factor(Creek), shape=factor(Month.year))) +
+  theme_bw() +
+  labs(x="PC1",y="PC2", color="Creek") +
+  ggtitle('COI - Raw Reads - Bray Curtis')
+# ggsave("/Users/elizabethandruszkiewicz/GoogleDrive/UW/Bioinformatics/test_ramon/PCA_raw_bc_COI.jpg", units="in", width=5, height=4, dpi=300)
+
+# raw reads / jaccard
+ggplot(raw.pca.to.plot, aes(x=pca.raw.jac.MDS1, y=pca.raw.jac.MDS2)) +
+  geom_point(size=4, aes(color=factor(Creek), shape=factor(Month.year))) +
+  theme_bw() +
+  labs(x="PC1",y="PC2", color="Creek") +
+  ggtitle('MiFish - Raw Reads - Jaccard')
+
+```
+
