@@ -7,7 +7,7 @@ output:
     toc: true
 params:
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run2_rerun\MiFish 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run2_rerun\MiMammal 
   hashes.annotated:
     value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun_crux\MiX\2021-10-11taxtable.csv
   ASV: 
@@ -49,15 +49,15 @@ ONLY USE THIS FOR THE 12S ASV TABLE IF THEY AREN'T SPLIT
 asv_fish <- asv.mat[asv.mat$Locus =="MiFish",]
 asv_mam <- asv.mat[asv.mat$Locus =="MiMammal",]
 #lets assign mifish to asv.mat for the future work first
-asv.mat <- asv_fish
+asv.mat <- asv_mam
 
 ```
 
 Select out the metadata for the correct run and locus of choice
 ```{r}
 metadata <- metadata[metadata$Sequencing.run == "2",]
-metadata <- metadata[metadata$Locus == "MiFish",]
-#metadata <- metadata[metadata$Locus == "MiMammal",]
+#metadata <- metadata[metadata$Locus == "MiFish",]
+metadata <- metadata[metadata$Locus == "MiMammal",]
 #metadata <- metadata[metadata$Locus == "COI",]
 ```
 
@@ -170,7 +170,7 @@ OTU1 <- as.data.frame(otu_table(tmp.tg))
 tmp.tx <- row.names(OTU1)
 
 #generate a mapping dataframe with the Seq_number and hash ids to keep 
-map.taxon <- data.frame(tmp.hash, tmp.tx)
+map.taxon <- data.frame(tmp.hash, tmp.tx, wholetax.tg)
 write.csv(map.taxon,file=paste0(Sys.Date(),".map.taxon.glommed.hash.csv") )
 
 # paste wholetax and Taxon_numbers together
