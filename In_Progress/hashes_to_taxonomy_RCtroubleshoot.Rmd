@@ -7,11 +7,11 @@ output:
     toc: true
 params: 
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun\COI\COI_fwds 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun\COI\COI_bkwds_200_175 
   Hash_key:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211013\COI_fwds_hash_key.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211013\COI_bkwds_200_175_new_hash_key.csv
   ASVs: 
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211013\COI_fwds_ASV_table.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211013\COI_bkwds_200_175_new_ASV_table.csv
   classifier:
     value: C:\Users\erdag\NextGenNEPA_local\classifiers\classification.tree.coi.leray.v5.rds
   previous_effort: 
@@ -46,7 +46,7 @@ tree.2   <- read_rds(params$classifier)
 #previous.effort <- read_csv(params$previous_effort)
 ```
 
-```{r make it into a DNA object}
+```{r make it into a DNA object and reverse compliment}
 #new.set <- anti_join(Hash, previous.effort, by = c(“Hash” = “representative”))
 #all.hashes.insect <- char2dna(new.set$Sequence)
 #names (all.hashes.insect) <- new.set$Hash
@@ -123,8 +123,7 @@ apply thresholds and save modified .rds
 
 ```{r apply thresholds}
 thresholds <- list(0.8, 0.85, 0.95)
-thresholds.classif <- map(thresholds, ~ classify(x= all.has
-                                                 hes.insect,
+thresholds.classif <- map(thresholds, ~ classify(x= all.hashes.insect,
                                               tree = tree.2,
                                               cores = 4,
                                               threshold = .))
