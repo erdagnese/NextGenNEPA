@@ -7,11 +7,11 @@ output:
     toc: true
 params:
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run2_rerun\COI 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run2_rerun\COI\COI_fwds 
   hashes.annotated:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun\COI\2021-10-13coi.taxtable.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun\COI\COI_fwds\2021-10-14taxtable.csv
   ASV: 
-   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211008\COI_ASV_table.csv
+   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211013\COI_fwds_ASV_table.csv
   metadata:
       value: C:\Users\erdag\github\NextGenNEPA\Input\sequencing_metadata_files\master_sequencing_datasheet20211011.csv
 ---
@@ -56,8 +56,8 @@ asv_mam <- asv.mat[asv.mat$Locus =="MiMammal",]
 Select out the metadata for the correct run and locus of choice
 ```{r}
 metadata <- metadata[metadata$Sequencing.run == "2",]
-metadata <- metadata[metadata$Locus == "MiFish",]
-metadata <- metadata[metadata$Locus == "MiMammal",]
+#metadata <- metadata[metadata$Locus == "MiFish",]
+#metadata <- metadata[metadata$Locus == "MiMammal",]
 metadata <- metadata[metadata$Locus == "COI",]
 ```
 
@@ -80,46 +80,109 @@ phylo <- make.phyloseq.obj(asv.mat, metadata, tax.mat)
 
 check that things are working with a barplot
 ```{r}
-plot_bar(phylo, fill = "family")
+plot_bar(phylo, fill = "phylum")
 ```
 
 filter out the bacteria and uncharacterized/no rank ASVs
 ```{r}
-phylo <- subset_taxa(phylo, !is.na(kingdom) & !kingdom %in% c("","no rank", "uncharacterized"))
+phylo_clean <- subset_taxa(phylo, !is.na(kingdom) & !kingdom %in% c("","no rank", "uncharacterized"))
 ```
 
 check again to make sure they were removed
 ```{r}
-plot_bar(phylo, fill = "family")
+plot_bar(phylo_clean, fill = "class")
 ```
 
 
 then collapse to taxon and produce an OTU table to be combined with other run OTU tables later
 ```{r}
-taxon_glom <- tax_glom(phylo, taxrank = "taxon")
+taxon_glom <- tax_glom(phylo_clean, taxrank = "taxon")
 #check that it kept all the column data
 
 ```
 
 
-making the ASV table with taxonomy rather than hashes
+making the ASV table with taxonomy rather than hashes including taxa that are uncharacterised
 ```{r}
-##need to get OTU table at matrix with rows as samples and columns as taxa
-ASV1 = as(otu_table(phylo), "matrix")
-if(taxa_are_rows(phylo)){ASV1<-t(ASV1)}
-ASV.taxdf = as.data.frame(ASV1)
-head(ASV.taxdf)
-saveRDS(ASV.taxdf, file=paste0(Sys.Date(),".ASV.with.taxa.rds"))
-write.csv(ASV.taxdf, file=paste0(Sys.Date(),".ASV.with.taxa.csv"))
+##make a temporary phyloseq object so we don't alter the full original one
+tmp.phylo <- phylo
+hash.id <- taxa_names(phylo)
+# this changes the header from the actual sequence to Seq_001, Seq_002 etc
+taxa_names(tmp.phylo)
+n_seqs <- seq(ntaxa(tmp.phylo))
+len_n_seqs <- nchar(max(n_seqs))
+taxa_names(tmp.phylo) <- paste("Seq", formatC(n_seqs, 
+                                            width = len_n_seqs, 
+                                            flag = "0"), sep = "_")
+taxa_names(tmp.phylo)
+
+# generate a vector containing the full taxonomy path for all OTUs
+wholetax <- do.call(paste, c(as.data.frame(tax_table(tmp.phylo))
+                  [c("kingdom", "phylum", "class", "order", "family", "genus", "species")], 
+                  sep = "__"))  # to distinguish from "_" within tax ranks
+
+#export the ASV table into a dataframe
+ASV1 <- as.data.frame(otu_table(tmp.phylo))
+
+#generate the vector of new seq_numbers
+tmp <- row.names(ASV1)
+
+# paste wholetax and OTU_ids together
+for(i in 1:length(tmp)){
+names(tmp)[i] = paste(wholetax[i], tmp[i], sep = "__")
+}
+#generate a mapping dataframe with the Seq_number and hash ids to keep 
+map.ASV <- data.frame(hash.id, tmp)
+write.csv(map.ASV,file=paste0(Sys.Date(),".map.ASV.hash.to.taxa.csv"))
+
+# overwrite old row names
+row.names(ASV1) <- names(tmp)
+head(ASV1)
+
+
+saveRDS(ASV1, file=paste0(Sys.Date(),".ASV.with.taxa.rds"))
+write.csv(ASV1, file=paste0(Sys.Date(),".ASV.with.taxa.csv"))
 ```
 
-Making an agglomerated OTU table with counts by taxon
+Making an agglomerated OTU table with counts by taxon as above
 ```{r}
-OTU2 = as(otu_table(taxon_glom), "matrix")
-if(taxa_are_rows(taxon_glom)){OTU2<-t(OTU2)}
-OTU.taxdf = as.data.frame(OTU2)
-head(OTU.taxdf)
-saveRDS(OTU.taxdf, file=paste0(Sys.Date(),".ASV.with.taxa.rds"))
-write.csv(OTU.taxdf, file=paste0(Sys.Date(),".ASV.with.taxa.csv"))
+##make a temporary phyloseq object so we don't alter the full original one
+tmp.tg <- taxon_glom
+tmp.hash <- taxa_names(taxon_glom)
+# this changes the header from the actual sequence to Seq_001, Seq_002 etc
+taxa_names(tmp.tg)
+n_seqs <- seq(ntaxa(tmp.tg))
+len_n_seqs <- nchar(max(n_seqs))
+taxa_names(tmp.tg) <- paste("Taxon", formatC(n_seqs, 
+                                            width = len_n_seqs, 
+                                            flag = "0"), sep = "_")
+
+# generate a vector containing the full taxonomy path for all OTUs
+wholetax.tg <- do.call(paste, c(as.data.frame(tax_table(tmp.tg))
+                  [c("kingdom", "phylum", "class", "order", "family", "genus", "species")], 
+                  sep = "__"))  # to distinguish from "_" within tax ranks
+
+
+#export the taxon agglomerated OTU table to a dataframe 
+OTU1 <- as.data.frame(otu_table(tmp.tg))
+
+#generate a vector of the taxon ids
+tmp.tx <- row.names(OTU1)
+
+#generate a mapping dataframe with the Seq_number and hash ids to keep 
+map.taxon <- data.frame(tmp.hash, tmp.tx)
+write.csv(map.taxon,file=paste0(Sys.Date(),".map.taxon.glommed.hash.csv") )
+
+# paste wholetax and Taxon_numbers together
+for(i in 1:length(tmp.tx)){
+names(tmp.tx)[i] = paste(wholetax.tg[i], tmp.tx[i], sep = "__")
+}
+# overwrite old row names
+row.names(OTU1) <- names(tmp.tx)
+head(OTU1)
+
+saveRDS(OTU1, file=paste0(Sys.Date(),".OTU.taxon.with.taxa.rds"))
+write.csv(OTU1, file=paste0(Sys.Date(),".OTU.taxonASV.with.taxa.csv"))
 ```
+
 
