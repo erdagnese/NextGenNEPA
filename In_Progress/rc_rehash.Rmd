@@ -51,7 +51,7 @@ colnames(old_to_new_hash_key) <- c("Hash", "NewHash")
 new_asv_table <- inner_join(asv_table, old_to_new_hash_key) 
 new_asv_table <- new_asv_table[, !(colnames(new_asv_table) %in% "Hash")]
 
-new_asv_table %>% 
+new_asv_table <- new_asv_table %>% 
   rename(Hash = NewHash)
 
 write.csv(new_asv_table, here("Output","dada2_output_files", "run2_rerun_20211013", "COI_bkwds_200_175_new_ASV_table.csv"))
