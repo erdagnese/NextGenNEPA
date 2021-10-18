@@ -7,15 +7,15 @@ output:
     toc: true
 params: 
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run3\MiX 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run3\COI 
   Hash_key:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run3_2021101\MiX_hash_key.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run3_20211018\COI_fwds_hash_key.csv
   ASVs: 
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run3_2021101\MiX_ASV_table.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run3_20211018\COI_fwds_ASV_table.csv
   classifier:
-    value: C:\Users\erdag\NextGenNEPA_local\classifiers\classifier_12S_MiFish.rds
+    value: C:\Users\erdag\NextGenNEPA_local\classifiers\classification.tree.coi.leray.v5.rds
   previous_effort: 
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun_crux\MiX\2021-10-11hashes.annotated.rds
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun\COI\COI_fwds\2021-10-14hashes.annotated.rds
  
 ---
 

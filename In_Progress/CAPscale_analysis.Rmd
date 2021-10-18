@@ -1,0 +1,107 @@
+---
+title: "CAP_analysis"
+author: "Erin D'Agnese"
+date: "10/18/2021"
+output: html_document
+params: 
+  folder:
+    value: C:\Users\erdag\github\NextGenNEPA\Output\
+  ASVs: 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run3_20211018\COI_fwds_ASV_table.csv
+  taxtable: 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run3\MiX\2021-10-18taxtable.csv 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+For the ordination based on eDNA index
+1. eDNA index for each ASV
+2. CAPScale analysis and ordination plot of eDNAindexed ASV table
+3. Based on the CAP analysis determine ASVs driving ordination
+
+
+1.use ASV table to run the eDNA index function
+```{r}
+asv1 = as(otu_table(phy1), "matrix")
+# Coerce to data.frame
+ASVdf = as.data.frame(asv1)
+remotes::install_github("https://github.com/ramongallego/eDNA_functions")
+library(eDNAfuns)
+library(tidyverse)
+nASV <- ASVdf %>% 
+  rownames_to_column("ASVid")%>%
+  pivot_longer(-ASVid, names_to="SampleID", values_to = "nReads")%>%
+  eDNAfuns::eDNAindex(Sample_column = SampleID, OTU_column = ASVid, Counts_column = nReads)%>%
+  pivot_wider(names_from = ASVid, values_from = Normalized.reads)
+write.csv(nASV, "eDNAindex.ASV.table.csv")
+```
+
+
+2. create ASV table of the eDNAindex data and check it
+```{r}
+library(vegan)
+temp <- metadata%>%inner_join(nASV)%>%
+  #select(-`barcode-sequence`,-linkerprimersequence)
+newmetadata = temp[,1:5]
+newASV = temp%>%select(!colnames(newmetadata))
+
+adonis(newASV~creek,data=newmetadata, method="bray")
+
+ord <- vegdist(newASV, method= "bray")
+
+```
+
+
+3. CAP analysis and the constrained ordination plot by sampletype 
+```{r cap analysis}  
+cap1 <- capscale(newASV~creek, data=newmetadata, distance="bray")
+sppscores(cap1) <- sqrt(decostand(newASV, "total"))
+
+capPt <- plot(cap1)
+cap2 <- cap1[["CCA"]][["wa"]] %>%
+                         as.data.frame() %>%
+                         bind_cols(newmetadata) %>% 
+   
+      ggplot(aes(x = CAP1,
+                 y = CAP2)) +
+      # ggforce::geom_mark_hull(aes( group= cluster, color = as.factor(cluster),label = as.factor(cluster), fill = as.factor(cluster)),
+      #                     expand = unit(2, "mm"),
+      #            label.margin = margin(1, 1, 1, 1, "mm"),
+      #            label.buffer = unit(0, "mm"),
+      #            con.cap = 1 ,
+      #            alpha = 0.5) +
+     
+      geom_point(size = 1.5) +
+       geom_point(aes(shape = sampletype, color = biosample), size = 3) +
+  theme_bw()
+      # geom_segment(aes(x = 0, y = 0,
+      #                  xend = CAP1,
+      #                  yend = CAP2), data = var.scores, color = "blue", arrow = arrow(length = unit(0.1,"cm"))) +
+      # geom_label_repel(aes(x= CAP1  ,
+      #                      y= CAP2 ,
+      #                      label = env.variable), data = var.scores, fill = "pink", alpha = 0.75) +
+      # ggtitle ("") + coord_equal() + scale_color_brewer(name = "Cluster", palette = "Set2") + scale_fill_brewer(name = "Cluster",palette = "Set2") +
+      # theme(legend.position = "bottom")
+cap2
+ggsave("CAP_creek.png", width = 8, height = 6)      
+```
+
+4. Aligning the ASVs found through CAP analysis to the taxa assignments 
+```{r}
+ASVvectors <- cap1[["CCA"]][["v"]] %>% as.data.frame 
+CAPorder <- ASVvectors %>% arrange(desc(CAP1)) #%>% head(50)
+CAPorder <- cbind(Feature.ID = rownames(CAPorder), CAPorder)
+rownames(CAPorder) <- NULL
+write.csv(CAPorder, "CAPanalysis_ASVvectors.csv", row.names = TRUE)
+#map on the classification of the ASVs to determine
+CAP.ASVid <- merge(CAPorder, taxtable, by=c("Feature.ID"), all.x=FALSE, all.y=TRUE)
+CAP.ASVid <- CAP.ASVid %>% arrange(desc(CAP1))
+write.csv(CAP.ASVid, "CAPanalysis_DescASVs.csv", row.names = TRUE)
+Top50 <- CAP.ASVid %>% head(50)
+write.csv(Top50, "CAPanalysis_Top50DescASVs.csv", row.names = TRUE)
+
+```
