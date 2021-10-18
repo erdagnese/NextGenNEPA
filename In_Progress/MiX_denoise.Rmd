@@ -1,5 +1,5 @@
 ---
-title: "COI_denoise"
+title: "MiX_denoise"
 author: "Eily Allan"
 date: "8/3/2021"
 output: html_document
@@ -37,8 +37,8 @@ We have completed cutadapt and dada2, and then merged ASV tables, hash keys, and
 
 ```{r load merged COI asv table, hash key, metadata}
 
-metadata <- read.csv(here("Output", "dada2_output_files", "MiX.all.metadata.csv"))
-ASV.table <- read.csv(here("Output", "dada2_output_files", "MiX.merged.ASV.table.csv"))
+metadata <- read.csv(here("Output", "dada2_output_files", "run3_2021101", "MiX_metadata.csv"))
+ASV.table <- read.csv(here("Output", "dada2_output_files", "run3_2021101", "MiX_ASV_table.csv"))
 
 ```
 
@@ -49,7 +49,7 @@ A few things we check for: That **no sample appears twice** in the metadata. Tha
 ```{r data cleaning}
 # Check that no sample appears more than once in the metadata
 metadata %>% 
-  group_by(Sample.name) %>%
+  group_by(Sample_name) %>%
   summarise(tot = n()) %>% 
   arrange(desc(tot)) 
 
@@ -68,14 +68,12 @@ The output of this process are a clean ASV table and a clean metadata file.
 Before we modify our datasets on any way, we can calculate how many sequences that were only supposed to be in the positives control appeared in the environmental samples, and how many did the opposite. First we divide the dataset into positive control and environmental samples. Also create an ordered list of the Hashes present in the positive controls, for ease of plotting
 
 ```{r split into two}
-# first we need to rename the ASV table column from Sample_name to Sample.number
-names(ASV.table)[names(ASV.table)=="Sample_name"] <- "Sample.number"
 
-# then we can add on the sample name and type of sample by comparing sample numbers
-ASV.table <- merge(ASV.table, metadata, by="Sample.number")
+# then we can add on the sample type of sample by comparing sample names
+ASV.table <- merge(ASV.table, metadata, by="Sample_name")
 
 ASV.table %>% 
-  filter (Type == "kangaroo") %>% 
+  filter (type == "kangaroo") %>% 
   group_by(Hash) %>% 
   summarise(tot = sum(nReads)) %>% 
   arrange(desc(tot)) %>% 
@@ -91,17 +89,17 @@ So Step1 is create a nested table so we can run this analysis on each run indepe
 
 ```{r nesting the dataset}
 ASV.table %>% 
-  group_by(Sequencing.run, Type) %>% 
+  group_by(type) %>% 
   nest() %>% 
-  pivot_wider(names_from = Type, values_from =  data) -> ASV.nested 
+  pivot_wider(names_from = type, values_from =  data) -> ASV.nested 
 ```
 
 That wasn't too complicated. Let's start a summary function that keeps track of our cleaning process
 
 ```{r summary.file}
-how.many <- function(ASVtable, round){
-  ASVtable %>% ungroup() %>% 
-    summarise(nsamples = n_distinct(sample),
+how.many <- function(ASV.table, round){
+  ASV.table %>% ungroup() %>% 
+    summarise(nsamples = n_distinct(Sample_name),
               nHashes = n_distinct(Hash),
               nReads = sum(nReads), 
               Stage = paste0("Step_", round)) %>% 
@@ -109,7 +107,7 @@ how.many <- function(ASVtable, round){
 }
 
 ASV.nested %>% 
-  transmute(Summary = map(sample, ~ how.many(ASVtable = ASV.table,round = 0)))  -> ASV.summary
+  transmute(Summary = map(sample, ~ how.many(ASV.table = ASV.table,round = 0)))  -> ASV.summary
 ```
 
 ### Step 2: Model the composition of the positive controls of each run 
