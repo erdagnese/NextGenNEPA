@@ -7,15 +7,15 @@ output:
     toc: true
 params: 
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun\COI\COI_fwds 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run3\MiX 
   Hash_key:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211013\COI_fwds_hash_key.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run3_2021101\MiX_hash_key.csv
   ASVs: 
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211013\COI_fwds_ASV_table.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run3_2021101\MiX_ASV_table.csv
   classifier:
-    value: C:\Users\erdag\NextGenNEPA_local\classifiers\classification.tree.coi.leray.v5.rds
+    value: C:\Users\erdag\NextGenNEPA_local\classifiers\classifier_12S_MiFish.rds
   previous_effort: 
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\hashes.annotated.coi.2021-06-04.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun_crux\MiX\2021-10-11hashes.annotated.rds
  
 ---
 
@@ -43,7 +43,7 @@ ALL.ASVs <- read_csv(params$ASVs)
 tree.2   <- read_rds(params$classifier)
 
 #bringing in the previous annotated run to start from and add to
-#previous.effort <- read_csv(params$previous_effort)
+previous.effort <- read_rds(params$previous_effort)
 ```
 
 So these sequences are in the same direction, and they have some shared and some new sequences. 
@@ -54,9 +54,8 @@ Let's keep only the unique sequences
 Make them into a DNAbin object for insect
 
 ```{r make it into a DNA object}
-#new.set <- anti_join(Hash, previous.effort, by = c("Hash" = "representative"))
-all.hashes.insect <- char2dna(Hash$Sequence)
-#all.hashes.insect <- char2dna(new.set$Sequence)
+new.set <- anti_join(Hash, previous.effort, by = c("Hash" = "representative"))
+all.hashes.insect <- char2dna(new.set$Sequence)
 names (all.hashes.insect) <- new.set$Hash
 all.hashes.insect
 ```
@@ -83,8 +82,7 @@ clasif.hashes %>%
 clasif.hashes %>% 
   mutate(phylum = case_when(phylum != "" ~ phylum,
                             TRUE   ~ class))
-clasif.hashes %.%
-  
+
 saveRDS(clasif.hashes, paste0("hashes.annotated", ".rds"))
 clasif.hashes <- readRDS("hashes.annotated.rds")
 write.csv(clasif.hashes, "hashes.annotated.csv")

@@ -7,11 +7,11 @@ output:
     toc: true
 params:
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run2_rerun\MiMammal 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run2_rerun\COI\COI_fwds_200_175 
   hashes.annotated:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun_crux\MiX\2021-10-11taxtable.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun\COI\COI_fwds_200_175\2021-10-15taxtable.csv
   ASV: 
-   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211011\MiX_ASV_table.csv
+   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run2_rerun_20211013\COI_fwds_200_175_new_ASV_table.csv
   metadata:
       value: C:\Users\erdag\github\NextGenNEPA\Input\sequencing_metadata_files\master_sequencing_datasheet20211011.csv
 ---
@@ -57,8 +57,8 @@ Select out the metadata for the correct run and locus of choice
 ```{r}
 metadata <- metadata[metadata$Sequencing.run == "2",]
 #metadata <- metadata[metadata$Locus == "MiFish",]
-metadata <- metadata[metadata$Locus == "MiMammal",]
-#metadata <- metadata[metadata$Locus == "COI",]
+#metadata <- metadata[metadata$Locus == "MiMammal",]
+metadata <- metadata[metadata$Locus == "COI",]
 ```
 
 
