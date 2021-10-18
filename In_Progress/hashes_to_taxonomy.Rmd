@@ -167,7 +167,7 @@ Summary.thresholds %>%
   theme(axis.text.x = element_text(angle = 45,vjust = 0.75)) -> q
   ggsave(filename = "Different.thresholds.png", width = 14)  
   p+q+plot_layout(guides = "collect")
-  ggsave(filename = "Different.thresholds,compare.png", width = 14)
+  ggsave(filename = "Different.thresholds.compare.png", width = 14)
 ```
 
 now we want to make a combined rds file with the previous effort and the new one then a tax.table for use in the phyloseq object

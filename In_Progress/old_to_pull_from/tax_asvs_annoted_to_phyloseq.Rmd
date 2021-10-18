@@ -86,6 +86,9 @@ plot_bar(phylo, fill = "phylum")
 filter out the bacteria and uncharacterized/no rank ASVs
 ```{r}
 phylo_clean <- subset_taxa(phylo, !is.na(kingdom) & !kingdom %in% c("","no rank", "uncharacterized"))
+ASV_clean <- as.data.frame(otu_table(phylo_clean))
+
+write.csv(ASV_clean,file=paste0(Sys.Date(),".ASV.cleaned.csv"))
 ```
 
 check again to make sure they were removed
