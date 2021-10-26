@@ -7,13 +7,13 @@ output:
     toc: true
 params:
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run3\Mimammal
+    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run4_preliminary\COI
   hashes.annotated:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run3\MiX\2021-10-18taxtable.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run4_preliminary\COI\2021-10-26taxtable.csv
   ASV: 
-   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run3_2021101\MiX\ASV_table.csv
+   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run4_preliminary\COI_ASV_table.csv
   metadata:
-      value: C:\Users\erdag\github\NextGenNEPA\Input\sequencing_metadata_files\master_sequencing_datasheet20211018.csv
+      value: C:\Users\erdag\github\NextGenNEPA\Input\sequencing_metadata_files\master_sequencing_datasheet_20211026.csv
 ---
 
 ```{r setup, include=FALSE}
@@ -55,16 +55,17 @@ asv.mat <- asv_mam
 
 Select out the metadata for the correct run and locus of choice
 ```{r}
-metadata <- metadata[metadata$Sequencing.run == "3",]
+metadata <- metadata[metadata$Sequencing.run == "4",]
 #metadata <- metadata[metadata$Locus == "MiFish",]
-metadata <- metadata[metadata$Locus == "MiMammal",]
-#metadata <- metadata[metadata$Locus == "COI",]
+#metadata <- metadata[metadata$Locus == "MiMammal",]
+metadata <- metadata[metadata$Locus == "COI",]
 ```
 
 
 Making the ASV table into a matrix 
 ```{r ASV pivot}
 asv.mat <- asv.matrix(asv.mat)
+write.csv(asv.mat, file=paste0(Sys.Date(),".ASV.mat.hash.csv"))
 ```
 
 making annotated hashes into the taxtable
