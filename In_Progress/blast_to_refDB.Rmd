@@ -1,0 +1,74 @@
+---
+title: "blast_to_RFDB"
+author: "Erin D'Agnese"
+date: "10/26/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This script is used to build a reference DB for COI based off Blast results
+
+1. Fist step is running this command through the server to blast the results and pull down the data we need for each
+```{bash}
+#!/bin/bash
+
+BLAST_DB='/Users/mgb/Documents/APhD/eDNA_extra_docs/MARES/MARES_Ev.db'
+# BLAST PARAMETERS
+PERCENT_IDENTITY="85"
+WORD_SIZE="30"
+EVALUE="1e-30"
+# number of matches recorded in the alignment:
+MAXIMUM_MATCHES="50"
+CULLING="5"
+
+	################################################################################
+	# BLAST CLUSTERS
+	################################################################################
+	echo $(date +%H:%M) "BLASTing..."
+	blast_output="/Users/mgb/Documents/APhD/eDNA_extra_docs/MARES/MARES_reformated_20210723.txt"
+blastn \
+		-query "/Users/mgb/Documents/APhD/eDNA_extra_docs/MARES/hash_key.fasta" \
+		-db "${BLAST_DB}" \
+		-num_threads 4 \
+		-perc_identity "${PERCENT_IDENTITY}" \
+		-word_size "${WORD_SIZE}" \
+		-evalue "${EVALUE}" \
+		-max_target_seqs "${MAXIMUM_MATCHES}" \
+		-culling_limit="${CULLING}" \
+		-outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids qlen" \
+		-out "${blast_output}"
+```
+
+```{r}
+library(insect)
+```
+
+
+2. Using the results from Blast we add headers to the dataframe
+```{r}
+blast <- read_delim(("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/runs1_2_3_coi_hash_key_format6.txt"), col_names = c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore", "staxid", "qlen"), delim = "\t" )
+```
+
+3.pull the taxonomy using insect and the taxa ids from the blast output
+```{r}
+insect::taxonomy() -> worlds.taxonomy
+blast %>% distinct(staxid) %>%
+  pull()-> all.taxids
+insect::get_lineage(all.taxids, worlds.taxonomy) -> all.taxonomy   
+```
+
+4. make a dataframe with all the ranks
+```{r}
+Conversion.df <- tibble (taxid = all.taxids,
+                         taxonomy = all.taxonomy) %>%
+  mutate (Phylum = map_chr(taxonomy, ~.x["phylum"]),
+          Class = map_chr(taxonomy, ~.x["class"]),
+          Order = map_chr(taxonomy, ~.x["order"]),
+          Family= map_chr(taxonomy, ~.x["family"]),
+          Genus = map_chr(taxonomy, ~.x["genus"]),
+          Species = map_chr(taxonomy, ~.x["species"]))
+```
+
