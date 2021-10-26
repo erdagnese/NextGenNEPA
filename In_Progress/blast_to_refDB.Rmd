@@ -45,6 +45,7 @@ blastn \
 ```{r}
 library(insect)
 library(tidyverse)
+library(taxonomizr)
 ```
 
 
@@ -60,7 +61,7 @@ so there are a number of hashes that have more than 1 taxID which are not being 
 ```{r}
 multi_tax <- blast %>% mutate (Ntaxid = as.numeric (staxid)) %>% filter(is.na(Ntaxid))
 #there are 888 entries that have multiple taxIDs per hash
-
+nblast<- blast %>% mutate (taxid = as.numeric (staxid))
 ```
 
 
@@ -80,11 +81,12 @@ insect::get_lineage(all.taxids, worlds.taxonomy) -> all.taxonomy
 
 
 
-5. make a dataframe with all the ranks
+5. make a dataframe with all the ranks for each taxID
 ```{r}
 Conversion.df <- tibble (taxid = all.taxids,
                          taxonomy = all.taxonomy) %>%
-  mutate (Phylum = map_chr(taxonomy, ~.x["phylum"]),
+  mutate (Kingdom = map_chr(taxonomy, ~.x["kingdom"]),
+          Phylum = map_chr(taxonomy, ~.x["phylum"]),
           Class = map_chr(taxonomy, ~.x["class"]),
           Order = map_chr(taxonomy, ~.x["order"]),
           Family= map_chr(taxonomy, ~.x["family"]),
@@ -94,11 +96,18 @@ Conversion.df <- tibble (taxid = all.taxids,
 Conversion.df %>% filter(is.na(taxid))
 ```
 
-5. Condense to the most common ancestors
+6. merge the Conversion.df with the blast df to run the consensus script
+```{r}
+blast.tax <- merge(nblast, Conversion.df, by= "taxid")
+```
+
+
+
+7. Create the function to find consensus
 ```{r}
 custom.lca <- function (df, cutoff = 90) {df %>%  # this function allows to change cutoff parameters for a specified dataframe (df)
   group_by(qseqid) %>%
-  select( pident, Phylum, Class, Order, Family, Genus, Species) %>%
+  select( pident, Kingdom, Phylum, Class, Order, Family, Genus, Species) %>%
   nest() %>% # for each query, calculate the agreed taxonomy
   # ungroup %>% slice (1:10) %>%
   mutate(consensus = purrr::map(data,  function(.x) { 
@@ -124,3 +133,7 @@ custom.lca <- function (df, cutoff = 90) {df %>%  # this function allows to chan
   unnest(consensus)} 
 ```
 
+```{r}
+consensus.df <- custom.lca(blast.tax)
+```
+OKay so that reduced the data set down to just an assignment and the hash, but we need to keep the rest of the data in that and get it into a dataframe with all the ranks next.
