@@ -19,8 +19,8 @@ library(dplyr)
 library(insect)
 library(digest)
 
-hash_key <- read.csv(here("Output","dada2_output_files", "run2_rerun_20211013", "COI_bkwds_200_175_hash_key.csv"))
-asv_table <- read.csv(here("Output","dada2_output_files", "run2_rerun_20211013", "COI_bkwds_200_175_ASV_table.csv"))
+hash_key <- read.csv(here("Output","dada2_output_files", "run3_20211018", "COI_bkwds_hash_key.csv"))
+asv_table <- read.csv(here("Output","dada2_output_files", "run3_20211018", "COI_bkwds_ASV_table.csv"))
 ```
 
 
@@ -41,7 +41,7 @@ new_hash_key$Sequence <- rc_seq
 new_hash_key$Hash <- sapply(new_hash_key$Sequence, digest, algo = "sha1", serialize = F, skip = "auto")
 
 # then write the new hash key to a csv
-write.csv(new_hash_key, here("Output","dada2_output_files", "run2_rerun_20211013", "COI_bkwds_200_175_new_hash_key.csv"))
+write.csv(new_hash_key, here("Output","dada2_output_files", "run3_20211018", "COI_bkwds_new_hash_key.csv"))
 
 ```
 
@@ -54,7 +54,7 @@ new_asv_table <- new_asv_table[, !(colnames(new_asv_table) %in% "Hash")]
 new_asv_table <- new_asv_table %>% 
   rename(Hash = NewHash)
 
-write.csv(new_asv_table, here("Output","dada2_output_files", "run2_rerun_20211013", "COI_bkwds_200_175_new_ASV_table.csv"))
+write.csv(new_asv_table, here("Output","dada2_output_files", "run3_20211018", "COI_bkwds_new_ASV_table.csv"))
 
 ```
 
