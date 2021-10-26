@@ -133,6 +133,8 @@ custom.lca <- function (df, cutoff = 90) {df %>%  # this function allows to chan
   unnest(consensus)} 
 ```
 
+
+8.make a dataframe with the consensus for each hash
 ```{r}
 consensus.df <- custom.lca(blast.tax)
 ```
