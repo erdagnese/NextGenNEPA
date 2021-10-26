@@ -9,7 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This script is used to build a reference DB for COI based off Blast results
+This script is used to build a reference DB for COI based off Blast results. 
+The goal of this script is to create two files:
+1: a fasta file with an identifier/accession number and the representative sequence that has been trimmed to the COI region
+2: a text file with the 
 
 1. Fist step is running this command through the server to blast the results and pull down the data we need for each
 ```{bash}
@@ -139,3 +142,19 @@ custom.lca <- function (df, cutoff = 90) {df %>%  # this function allows to chan
 consensus.df <- custom.lca(blast.tax)
 ```
 OKay so that reduced the data set down to just an assignment and the hash, but we need to keep the rest of the data in that and get it into a dataframe with all the ranks next.
+
+
+```{r}
+#make a dataframe with the hashid in one column and the ranks in another column with ";" deliminating them for the txt file for tree building
+
+
+```
+
+Then need to pull the representative sequences
+```{r}
+#make a dataframe with the Accession ID, and the hashes from consensus.df, so that we can pull down the sequences from genbank to build a reference
+```
+```{r}
+
+```
+
