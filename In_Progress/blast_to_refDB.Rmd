@@ -44,23 +44,43 @@ blastn \
 
 ```{r}
 library(insect)
+library(tidyverse)
 ```
 
 
 2. Using the results from Blast we add headers to the dataframe
 ```{r}
 blast <- read_delim(("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/runs1_2_3_coi_hash_key_format6.txt"), col_names = c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore", "staxid", "qlen"), delim = "\t" )
+
+blast %>% mutate (Ntaxid = as.numeric (staxid)) %>% filter(is.na(Ntaxid))
 ```
 
-3.pull the taxonomy using insect and the taxa ids from the blast output
+so there are a number of hashes that have more than 1 taxID which are not being properly handled. To deal with this, we can try a couple things, first could try creating a table of just these ones that we can run separately after making decisions on which TaxID to take. 
+
+```{r}
+multi_tax <- blast %>% mutate (Ntaxid = as.numeric (staxid)) %>% filter(is.na(Ntaxid))
+#there are 888 entries that have multiple taxIDs per hash
+
+```
+
+
+
+3.pull the taxonomy using insect 
 ```{r}
 insect::taxonomy() -> worlds.taxonomy
+```
+
+4. combine the taxonomy with the blast results
+```{r}
 blast %>% distinct(staxid) %>%
   pull()-> all.taxids
+all.taxids <- map(all.taxids, as.numeric)
 insect::get_lineage(all.taxids, worlds.taxonomy) -> all.taxonomy   
 ```
 
-4. make a dataframe with all the ranks
+
+
+5. make a dataframe with all the ranks
 ```{r}
 Conversion.df <- tibble (taxid = all.taxids,
                          taxonomy = all.taxonomy) %>%
@@ -70,5 +90,37 @@ Conversion.df <- tibble (taxid = all.taxids,
           Family= map_chr(taxonomy, ~.x["family"]),
           Genus = map_chr(taxonomy, ~.x["genus"]),
           Species = map_chr(taxonomy, ~.x["species"]))
+
+Conversion.df %>% filter(is.na(taxid))
+```
+
+5. Condense to the most common ancestors
+```{r}
+custom.lca <- function (df, cutoff = 90) {df %>%  # this function allows to change cutoff parameters for a specified dataframe (df)
+  group_by(qseqid) %>%
+  select( pident, Phylum, Class, Order, Family, Genus, Species) %>%
+  nest() %>% # for each query, calculate the agreed taxonomy
+  # ungroup %>% slice (1:10) %>%
+  mutate(consensus = purrr::map(data,  function(.x) { 
+    # If there are 100% matches - keep those and the 90s
+    # If not, keep everything
+    
+    if(max(.x$pident > cutoff )){
+      
+      .x %>% 
+        filter(pident > cutoff) %>% 
+        select(-pident) %>% 
+        condenseTaxa() %>% # agreement in Phylogeny
+      paste(., collapse = "%") # Collapse all the taxa data separatated by %
+      
+    }else{
+    .x %>% 
+        select(-pident) %>% 
+    condenseTaxa() %>%
+      paste(., collapse = "%")}
+  }
+                               )) %>%
+  select(qseqid, consensus) %>%
+  unnest(consensus)} 
 ```
 
