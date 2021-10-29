@@ -54,7 +54,7 @@ library(taxonomizr)
 
 2. Using the results from Blast we add headers to the dataframe and convert taxaid to numeric where possible, then find the ones that coerce NAs because they have more than one taxID
 ```{r}
-blast <- read_delim(("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/MiXRun3_format6-1.txt"), col_names = c("qseqid", "sseqid", "sacc", "pident", "length", "mismatch", "gapopen", "qcovus", "qstart", "qend", "sstart", "send", "evalue", "bitscore", "staxid", "qlen", "sscinames", "sseq"), delim = "\t" )
+blast <- read_delim(("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/runs1_2_3_coi_hash_key_format6-1.txt"), col_names = c("qseqid", "sseqid", "sacc", "pident", "length", "mismatch", "gapopen", "qcovus", "qstart", "qend", "sstart", "send", "evalue", "bitscore", "staxid", "qlen", "sscinames", "sseq"), delim = "\t" )
 
 blast %>% mutate (Ntaxid = as.numeric (staxid)) %>% filter(is.na(Ntaxid))
 ```
@@ -109,7 +109,7 @@ blast.tax <- merge(nblast, Conversion.df, by= "taxid")
 ```{r}
 ref.txt <- blast.tax %>% select(sacc, Kingdom, Phylum, Class, Order, Family, Genus, Species)
 ref.txt <- ref.txt %>% unite(tax, c(Kingdom, Phylum, Class, Order, Family, Genus, Species), sep = ";")
-write.table(ref.txt, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/MiX_test_blastDB.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(ref.txt, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blastDB.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 ```
 
 8. Pull out the accession and sequence for the fasta
@@ -117,6 +117,9 @@ write.table(ref.txt, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/MiX_t
 ref.fasta <- blast.tax %>% select(sacc, sseq)
 names(ref.fasta)[1]<-'name'
 names(ref.fasta)[2]<-'seq'
+
+#remove duplicates
+nref.fasta <- ref.fasta %>% distinct(name, .keep_all = TRUE)
 
 writeFasta<-function(data, filename){
   fastaLines = c()
@@ -130,62 +133,156 @@ writeFasta<-function(data, filename){
 }
 
 
-writeFasta(ref.fasta, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/MIX_test_blastRefDB.fasta")
+writeFasta(ref.fasta, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blastRefDB.fasta")
 
 ```
 
 
-9. Create the function to find consensus of the 
+
+Now we need to deal with the multi-taxids
 ```{r}
-custom.lca <- function (df, cutoff = 90) {df %>%  # this function allows to change cutoff parameters for a specified dataframe (df)
-  group_by(qseqid) %>%
-  select( pident, Kingdom, Phylum, Class, Order, Family, Genus, Species) %>%
+#create df with accession numbers and the taxids from multi_tax
+multi_tax_ids <- multi_tax %>% select(sacc, staxid)
+#remove duplicate rows by accession numbers
+multi_tax_ids <- multi_tax_ids %>% distinct(sacc, .keep_all = TRUE)
+#splitting the multiple vlaues in staxid to create multiple rows
+library(tidyr)
+multi_tax_sep <- separate_rows(multi_tax_ids, staxid,sep=";")
+#making a df with the taxonomic ranks 
+ntaxid<- multi_tax_sep %>% mutate (taxid = as.numeric (staxid))
+multi_tax_sep %>% distinct(staxid) %>%
+  pull()-> multi.taxids
+multi.taxids <- map(multi.taxids, as.numeric)
+insect::get_lineage(multi.taxids, worlds.taxonomy) -> multi.taxonomy   
+#convert to df with taxonomy
+multi.df <- tibble (taxid = multi.taxids,
+                         taxonomy = multi.taxonomy) %>%
+  mutate (Kingdom = map_chr(taxonomy, ~.x["kingdom"]),
+          Phylum = map_chr(taxonomy, ~.x["phylum"]),
+          Class = map_chr(taxonomy, ~.x["class"]),
+          Order = map_chr(taxonomy, ~.x["order"]),
+          Family= map_chr(taxonomy, ~.x["family"]),
+          Genus = map_chr(taxonomy, ~.x["genus"]),
+          Species = map_chr(taxonomy, ~.x["species"]))
+
+multi.df %>% filter(is.na(taxid))
+
+```
+
+9. Create the function to find consensus in the accession numbers of the taxonomic ranks associated with the multiple taxids
+```{r}
+custom2.lca <- function (df) {df %>%  # this function allows to change cutoff parameters for a specified dataframe (df)
+  group_by(sacc) %>%
+  select(Kingdom, Phylum, Class, Order, Family, Genus, Species) %>%
   nest() %>% # for each query, calculate the agreed taxonomy
   # ungroup %>% slice (1:10) %>%
   mutate(consensus = purrr::map(data,  function(.x) { 
     # If there are 100% matches - keep those and the 90s
     # If not, keep everything
-    
-    if(max(.x$pident > cutoff )){
-      
-      .x %>% 
-        filter(pident > cutoff) %>% 
-        select(-pident) %>% 
-        condenseTaxa() %>% # agreement in Phylogeny
-      paste(., collapse = ";") # Collapse all the taxa data separatated by ;
-      
-    }else{
-    .x %>% 
-        select(-pident) %>% 
-    condenseTaxa() %>%
+.x %>% 
+  condenseTaxa() %>%
       paste(., collapse = ";")}
-  }
+
                                )) %>%
-  select(qseqid, consensus) %>%
+  select(sacc, consensus) %>%
   unnest(consensus)} 
 ```
 
 
+
 8.make a dataframe with the consensus for each hash
 ```{r}
-consensus.df <- custom.lca(blast.tax)
+
+#merge the accession numbers with the new df
+multi.tax <- merge(ntaxid, multi.df, by= "taxid")
+
+consensus.multi <- custom2.lca(multi.tax)
+
+#rename the the tax column to match ref.txt
+names(consensus.multi)[2]<-'tax'
+
+##pull out the seqs and accession numbers into a df to merge
+multi.fasta <- multi_tax %>% select(sacc, sseq)
+#remove the duplicates and rename the columns
+multi.fasta <- multi.fasta %>% distinct(sacc, .keep_all = TRUE)
+names(multi.fasta)[1]<-'name'
+names(multi.fasta)[2]<-'seq'
+
 ```
-OKay so that reduced the data set down to just an assignment and the hash, but we need to keep the rest of the data in that and get it into a dataframe with all the ranks next.
 
-
+now merge the taxonomy files and create a text file with all of them in there
 ```{r}
-#make a dataframe with the hashid in one column and the ranks in another column with ";" deliminating them for the txt file for tree building
+coi_DB_taxonomy <- rbind(ref.txt, consensus.multi)
+#remove the duplicates so there is one row for each accession number
+coi_DB_taxonomy <- coi_DB_taxonomy %>% distinct(sacc, .keep_all = TRUE)
 
+write.table(coi_DB_taxonomy, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_RefDB.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 
 ```
 
-Then need to pull the representative sequences
+merge the fasta dataframes and create a fasta file with all of them in there
 ```{r}
-#make a dataframe with the Accession ID, and the hashes from consensus.df, so that we can pull down the sequences from genbank to build a reference
+coi_DB_fasta <- rbind(ref.fasta, multi.fasta)
+#remove the duplicates so there is one row for each accession number
+coi_DB_fasta <- coi_DB_fasta %>% distinct(name, .keep_all = TRUE)
+
+
+writeFasta(coi_DB_fasta, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_RefDB.fasta")
+coi_DB_fasta <- readDNAStringSet("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_RefDB.fasta")
+
+name = names(coi_DB_fasta)
+seq = paste(coi_DB_fasta)
+coi_DB_fasta <- data.frame(name, seq)
+
+coi_DB_taxonomy <- read.table("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_RefDB.txt", sep = "\t", header = FALSE)
+names(coi_DB_taxonomy)[1] <- 'name'
+names(coi_DB_taxonomy)[2] <- 'tax'
+
+#make a df combining our blast dfs for use in combining with wangensteen later
+names(coi_DB_taxonomy)[1]<-'name'
+blast.all <- coi_DB_taxonomy %>% left_join(coi_DB_fasta, by=c("name" = "name"))
 ```
 
-
+read in the wangensteen fasta
 ```{r}
+library("Biostrings")
+wang.fasta <- readDNAStringSet("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Wangensteen_RF_DB.fasta")
+
+name = names(wang.fasta)
+seq = paste(wang.fasta)
+wang.fasta.df <- data.frame(name, seq)
+```
+
+read in the text and format to merge
+```{r}
+wang.tax <- read.table("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Wangensteen_RF_DB_taxonomy.txt", sep = ",", header = TRUE)
+
+wang.tax.df <- wang.tax %>% unite(tax, c(kingdom_names, phylum_names, class_names, order_names, family_names, genus_names, species_names), sep = ";")
+names(wang.tax.df)[1]<-'name'
+
+##make df with accession, tax, and seq
+wang.all <- wang.tax.df %>% left_join(wang.fasta.df, by=c("name" = "name"))
 
 ```
+
+creating the merged taxonomy and text files
+```{r}
+#first find the sequences that are only in Wangesteen's DB so we only add those to the ones we've blasted
+new.wang <- anti_join(wang.all, blast.all, by=c("seq"="seq"))
+
+#combine our blast results and tax with the ones from Wangensteen that weren't duplicates of ours
+blast.new.wang <- rbind(blast.all, new.wang)
+
+# create the new final txt file
+ref.db.tax <- blast.new.wang %>% select(name,tax)
+write.table(ref.db.tax, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB_taxonomy.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+#create new final fasta file
+ref.db.fasta <- blast.new.wang %>% select(name, seq)
+
+writeFasta(ref.db.fasta, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB.fasta")
+
+
+```
+
 
