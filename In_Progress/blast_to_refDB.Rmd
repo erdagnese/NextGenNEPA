@@ -79,7 +79,9 @@ insect::taxonomy() -> worlds.taxonomy
 blast %>% distinct(staxid) %>%
   pull()-> all.taxids
 all.taxids <- map(all.taxids, as.numeric)
-insect::get_lineage(all.taxids, worlds.taxonomy) -> all.taxonomy   
+
+insect::get_lineage(all.taxids, worlds.taxonomy) -> all.taxonomy  
+
 ```
 
 
@@ -107,9 +109,16 @@ blast.tax <- merge(nblast, Conversion.df, by= "taxid")
 
 7. Pull out the accession and taxonomy for the text file
 ```{r}
-ref.txt <- blast.tax %>% select(sacc, Kingdom, Phylum, Class, Order, Family, Genus, Species)
-ref.txt <- ref.txt %>% unite(tax, c(Kingdom, Phylum, Class, Order, Family, Genus, Species), sep = ";")
-write.table(ref.txt, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blastDB.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+# ref.txt <- blast.tax %>% select(sacc, Kingdom, Phylum, Class, Order, Family, Genus, Species)
+# ref.txt <- ref.txt %>% unite(tax, c(Kingdom, Phylum, Class, Order, Family, Genus, Species), sep = ";")
+# write.table(ref.txt, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blastDB.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+#pull out the accession, taxonomy and seq
+full.blast <- blast.tax %>% select(sacc, Kingdom, Phylum, Class, Order, Family, Genus, Species, sseq)
+full.blast <- full.blast %>% unite(name, c(sacc, Kingdom, Phylum, Class, Order, Family, Genus, Species), sep = ";")
+names(full.blast)[2]<-'seq'
+
+
 ```
 
 8. Pull out the accession and sequence for the fasta
@@ -132,8 +141,6 @@ writeFasta<-function(data, filename){
   close(fileConn)
 }
 
-
-writeFasta(ref.fasta, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blastRefDB.fasta")
 
 ```
 
@@ -200,6 +207,7 @@ consensus.multi <- custom2.lca(multi.tax)
 
 #rename the the tax column to match ref.txt
 names(consensus.multi)[2]<-'tax'
+names(consensus.multi)[1]<-'name'
 
 ##pull out the seqs and accession numbers into a df to merge
 multi.fasta <- multi_tax %>% select(sacc, sseq)
@@ -208,45 +216,33 @@ multi.fasta <- multi.fasta %>% distinct(sacc, .keep_all = TRUE)
 names(multi.fasta)[1]<-'name'
 names(multi.fasta)[2]<-'seq'
 
+#create a df with accession, ranks, and seq for the multi dataset
+multi.db <- consensus.multi %>% left_join(multi.fasta, by=c("name" = "name"))
+multi.db <- multi.db %>% unite(name, c(name,tax), sep = ";")
+
 ```
 
 now merge the taxonomy files and create a text file with all of them in there
 ```{r}
-coi_DB_taxonomy <- rbind(ref.txt, consensus.multi)
-#remove the duplicates so there is one row for each accession number
-coi_DB_taxonomy <- coi_DB_taxonomy %>% distinct(sacc, .keep_all = TRUE)
+coi_DB_full <- rbind(full.blast, multi.db)
+#remove the duplicates so there is one row for each sequence
+coi_DB_distinct <- coi_DB_full %>% distinct(seq, .keep_all = TRUE)
+coi_DB_unique <- unique(coi_DB_full)
 
-write.table(coi_DB_taxonomy, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_RefDB.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+writeFasta(coi_DB_unique, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_unique_RefDB.fasta")
+
+writeFasta(coi_DB_distinct, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_distinctseqs_RefDB.fasta")
 
 ```
 
-merge the fasta dataframes and create a fasta file with all of them in there
-```{r}
-coi_DB_fasta <- rbind(ref.fasta, multi.fasta)
-#remove the duplicates so there is one row for each accession number
-coi_DB_fasta <- coi_DB_fasta %>% distinct(name, .keep_all = TRUE)
 
-
-writeFasta(coi_DB_fasta, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_RefDB.fasta")
-coi_DB_fasta <- readDNAStringSet("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_RefDB.fasta")
-
-name = names(coi_DB_fasta)
-seq = paste(coi_DB_fasta)
-coi_DB_fasta <- data.frame(name, seq)
-
-coi_DB_taxonomy <- read.table("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_RefDB.txt", sep = "\t", header = FALSE)
-names(coi_DB_taxonomy)[1] <- 'name'
-names(coi_DB_taxonomy)[2] <- 'tax'
-
-#make a df combining our blast dfs for use in combining with wangensteen later
-names(coi_DB_taxonomy)[1]<-'name'
-blast.all <- coi_DB_taxonomy %>% left_join(coi_DB_fasta, by=c("name" = "name"))
-```
 
 read in the wangensteen fasta
 ```{r}
 library("Biostrings")
 wang.fasta <- readDNAStringSet("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Wangensteen_RF_DB.fasta")
+
+wang_check <- readFASTA("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Wangensteen_RF_DB.fasta")
 
 name = names(wang.fasta)
 seq = paste(wang.fasta)
@@ -263,26 +259,76 @@ names(wang.tax.df)[1]<-'name'
 ##make df with accession, tax, and seq
 wang.all <- wang.tax.df %>% left_join(wang.fasta.df, by=c("name" = "name"))
 
+wang.all <- wang.all %>% select(name, tax, seq)
+wang.all <- wang.all %>% unite(name, c(name,tax), sep = ";")
 ```
 
 creating the merged taxonomy and text files
 ```{r}
 #first find the sequences that are only in Wangesteen's DB so we only add those to the ones we've blasted
-new.wang <- anti_join(wang.all, blast.all, by=c("seq"="seq"))
+new.wang <- anti_join(wang.all, coi_DB_distinct, by=c("seq"="seq"))
+#make sure there are no duplicate sequences in the wangensteen db - there were
+new.wang <- new.wang %>% distinct(seq, .keep_all = TRUE)
 
 #combine our blast results and tax with the ones from Wangensteen that weren't duplicates of ours
-blast.new.wang <- rbind(blast.all, new.wang)
+blast.new.wang.unique <- rbind(coi_DB_unique, new.wang)#checked to see if there are more overlapping accessions than seqs which there are so we will use distinct
+blast.new.wang.distinct <- rbind(coi_DB_distinct, new.wang)
 
-# create the new final txt file
-ref.db.tax <- blast.new.wang %>% select(name,tax)
-write.table(ref.db.tax, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB_taxonomy.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+check.db <- blast.new.wang.distinct %>% distinct(seq, .keep_all = TRUE)
 
-#create new final fasta file
-ref.db.fasta <- blast.new.wang %>% select(name, seq)
+#blast.new.wang.db <- blast.new.wang %>% unite(name, c(name, tax), sep=";" )
 
-writeFasta(ref.db.fasta, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB.fasta")
+writeFasta(blast.new.wang.distinct, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB_withtax_distinct.fasta")
 
+# pull it back in and check that the seqs are all the same length
+check.db <- readFASTA("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB_withtax_distinct.fasta")
+
+check.db
+```
+Make a subset to train a classifier for one family
+```{r}
+subseqs <- grep("Hydridae", blast.new.wang.distinct$name)
+
+subset <- blast.new.wang.distinct[subseqs,]
+
+writeFasta(subset, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/subset_db.fasta")
 
 ```
+
+
+
+
+Create the classification tree and classifier of a subset
+```{r}
+
+sub.db <- readFASTA("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/subset_db.fasta")
+
+sub.db.2 <- unique(sub.db)
+
+insect::learn(sub.db) -> new.classifier
+write_rds(new.classifier, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_build_test.rds")
+```
+
+
+need to check that the subset will classify the input subest as it should
+```{r}
+tree <- read_rds("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_build_test.rds")
+clasif.subset <- classify (x = sub.db, tree = tree, cores = 4)
+```
+
+That worked! all 52 seqs were classified correctly to species level, the db has only unique sequences even if the accession numbers and tax are duplicated so we should be good to go!
+
+```{r}
+ref.db <- readFASTA("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB_withtax_distinct.fasta")
+
+insect::learn(ref.db) -> new.classifier
+write_rds(new.classifier, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_build_test.rds")
+```
+
+
+
+
+
+
 
 
