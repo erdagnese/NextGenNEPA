@@ -7,15 +7,15 @@ output:
     toc: true
 params: 
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run3\COI 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run4_preliminary\COI 
   Hash_key:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run3_20211018\COI_fwds_hash_key.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run4_preliminary\COI_hash_key.csv
   ASVs: 
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run3_20211018\COI_fwds_ASV_table.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run4_preliminary\COI_ASV_table.csv
   classifier:
     value: C:\Users\erdag\NextGenNEPA_local\classifiers\classification.tree.coi.leray.v5.rds
   previous_effort: 
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run2_rerun\COI\COI_fwds\2021-10-14hashes.annotated.rds
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run3\COI\2021-10-18hashes.annotated.rds
  
 ---
 
