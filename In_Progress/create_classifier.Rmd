@@ -21,9 +21,15 @@ library (primerTree) # To run this it is better to have your NCBI API key in the
 # 1. Load the fasta file and the insect version of ncbi taxonomy
 
 ```{r data}
-Seqs <- readFASTA(here("In_Progress", "old_to_pull_from", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Global_.fasta"))
+Seqs <- readFASTA(here("", "old_to_pull_from", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Global_.fasta"))
 
-lineages <- read_delim(here("In_Progress", "old_to_pull_from", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Global_taxonomy.txt"), col_names = c("Accession", "lineage"), delim = "\t" )
+Seqs <- readFASTA("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB.fasta")
+
+
+lineages <- read_delim(here("Users", "erdag", "NextGenNEPA_local", "classifiers", "COI_build", "Combined_blast_wang_RefDB_taxonomy.txt"), col_names = c("Accession", "lineage"), delim = "\t" )
+
+lineages <- read_delim("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB_taxonomy.txt", col_names = c("Accession", "lineage"), delim = "\t" )
+
 
 
 # new.taxonomy.rds is a tabulated version of Genebanks' taxonomy, in which for each taxID you have its name and rank, and 
@@ -43,12 +49,12 @@ lineages %>%
   select (Accession, last.term = G) -> Conversion.df
 ```
 
-For many of them, ther should be a perfect match in the taxonomydb. Now check for how many of those terms we don't have a perfect match in the taxonomy database; and search for those in Genbank for an updated taxID  
+For many of them, ther should be a perfect match in the taxonomydb. Now check for how many of those terms we don't have a perfect match in the taxonomy database; and search for those in Genbank for an updated taxID - DO WE NEED TO DO THIS FOR THE COI SINCE WANGENSTEEN MAY BE OLDER?
 ```{r }
 # Do we have a name for each last thing on the lineages?
 Conversion.df %>% 
   anti_join(world.taxonomy, by = c("last.term" = "name")) %>% # these are the ones without match
-#  slice(1:2) %>% 
+  slice(1:2) %>% 
   mutate(taxids = map_chr(Accession, gi2taxid)) -> taxIDs # keep the taxids
 
 Conversion.df %>% 
@@ -108,6 +114,8 @@ Better to do it in the cluster, but the code is
 ```{r}
 Seqs <- readFASTA( here("analysis", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Only_with_taxID.fasta"))
 
+
+#for learn function need: x= sequence DB aka the fasta file with "accession|taxID", and db = a hierarchical taxonomy database in a dataframe with taxID, parent_taxID, rank, name (see world.taxonomy)  
 world.taxonomy <- 
 insect::learn(New.new.seqs, db = world.taxonomy) -> new.classifier
 write_rds(new.classifier, here("analysis", "classifiers_to_use_in_insect", "insect_classifiers", "12S", "Classifier.12S.rds"))
