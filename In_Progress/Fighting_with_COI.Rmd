@@ -241,7 +241,7 @@ COI.step11 %>%
 
 #Use this to check that there aren't other entries with the same class and have phylum assignes
 COI.step10 %>%
-  filter (Class == "Heterotrichea") %>% View()
+  filter (Class == "Phaeophyceae") %>% View()
   
 
 COI.step10 %>% 
@@ -310,38 +310,711 @@ COI.step11 %>%
   mutate(Kingdom = case_when(Class == "Oligohymenophorea" ~ "Chromista",
                              TRUE               ~ Kingdom)) -> COI.step12 
 
-COI.step12 %>% 
+COI.step13 %>% 
   filter (Kingdom == "NA") %>%
   filter (Phylum == "NA") %>% 
   group_by(Class ) %>% 
   tally() %>% View() 
 
 COI.step12 %>% 
-  mutate(Phylum = case_when(Class == "Phaeophyceae" ~ "",
+  mutate(Phylum = case_when(Class == "Phaeophyceae" ~ "Ochrophyta",
                              TRUE               ~ Phylum)) %>% 
-  mutate(Kingdom = case_when(Class == "Phaeophyceae" ~ "",
+  mutate(Kingdom = case_when(Class == "Phaeophyceae" ~ "Chromista",
                              TRUE               ~ Kingdom)) %>%   
-  mutate(Phylum = case_when(Class == "Raphidophyceae" ~ "",
+  mutate(Phylum = case_when(Class == "Raphidophyceae" ~ "Ochrophyta",
                              TRUE               ~ Phylum)) %>% 
-  mutate(Kingdom = case_when(Class == "Raphidophyceae" ~ "",
+  mutate(Kingdom = case_when(Class == "Raphidophyceae" ~ "Chromista",
                              TRUE               ~ Kingdom)) %>%   
-  mutate(Phylum = case_when(Class == "Spirotrichea" ~ "",
+  mutate(Phylum = case_when(Class == "Spirotrichea" ~ "Ciliophora",
                              TRUE               ~ Phylum)) %>% 
-  mutate(Kingdom = case_when(Class == "Spirotrichea" ~ "",
+  mutate(Kingdom = case_when(Class == "Spirotrichea" ~ "Chromista",
                              TRUE               ~ Kingdom)) %>% 
-  mutate(Phylum = case_when(Class == "Synurophyceae" ~ "",
+  mutate(Phylum = case_when(Class == "Synurophyceae" ~ "Ochrophyta",
                              TRUE               ~ Phylum)) %>% 
-  mutate(Kingdom = case_when(Class == "Synurophyceae" ~ "",
+  mutate(Kingdom = case_when(Class == "Synurophyceae" ~ "Chromista",
                              TRUE               ~ Kingdom)) %>% 
-  mutate(Phylum = case_when(Class == "Xanthophyceae" ~ "",
+  mutate(Phylum = case_when(Class == "Xanthophyceae" ~ "Ochrophyta",
                              TRUE               ~ Phylum)) %>% 
-  mutate(Kingdom = case_when(Class == "Xanthophyceae" ~ "",
+  mutate(Kingdom = case_when(Class == "Xanthophyceae" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Phylum = case_when(Class == "Bigyra" ~ "Bigyra",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Bigyra" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Phylum = case_when(Class == "Katablepharidophyta" ~ "Katablepharidophyta",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Katablepharidophyta" ~ "Chromista",
                              TRUE               ~ Kingdom)) -> COI.step13
 
 
 ```
 
-try to fill in taxonomy with insect
+All of the entries with class but no phylum or kingdom are now filled in but there are 65k with no class info so we need to sort those out now
+
+```{r}
+COI.step13 %>% 
+  filter (Kingdom == "NA") %>%
+  filter (Phylum == "NA") %>% 
+  filter (Class == "NA") %>%
+  group_by(Order ) %>% 
+  tally() %>% View() 
+
+#Use this to check that there aren't other entries with the same class and have phylum assignes
+COI.step13 %>%
+  filter (Order == "Diptera") %>% View()
+
+COI.step13 %>% 
+  mutate(Class = case_when(Order == "Albuginales" ~ "Albuginaceae",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Albuginales" ~ "Oomycota",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Albuginales" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Amphipoda" ~ "Malacostraca",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Amphipoda" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Amphipoda" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Araneae" ~ "Arachnida",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Araneae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Araneae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Archaeognatha" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Archaeognatha" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Archaeognatha" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Bicosoecida" ~ "Bikosea",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Bicosoecida" ~ "Bigyra",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Bicosoecida" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Blattodea" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Blattodea" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Blattodea" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Coleoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Coleoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Coleoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Dermaptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Dermaptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Dermaptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Diplura" ~ "Entognatha",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Diplura" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Diplura" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Diptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Diptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Diptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Ephemeroptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Ephemeroptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Ephemeroptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) -> COI.step14
+
+COI.step14 %>% 
+  filter (Kingdom == "NA") %>%
+  filter (Phylum == "NA") %>% 
+  filter (Class == "NA") %>%
+  group_by(Order ) %>% 
+  tally() %>% View() 
+
+#Use this to check that there aren't other entries with the same class and have phylum assignes
+COI.step14 %>%
+  filter (Order == "Jakobida") %>% View()
+
+COI.step14 %>% 
+  mutate(Class = case_when(Order == "Echinosteliales" ~ "Myxomycetes",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Echinosteliales" ~ "Amoebozoa",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Echinosteliales" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Euglyphida" ~ "Imbricatea",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Euglyphida" ~ "Imbricatea",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Euglyphida" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Glomerales" ~ "Glomeromycetes",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Glomerales" ~ "Glomeromycota",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Glomerales" ~ "Fungi",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Grylloblattodea" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Grylloblattodea" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Grylloblattodea" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Harpellales" ~ "Trichomycetes",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Harpellales" ~ "Glomeromycota",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Harpellales" ~ "Fungi",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Hemiptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Hemiptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Hemiptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Hymenoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Hymenoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Hymenoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Isochrysidales" ~ "Haptophyta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Isochrysidales" ~ "Haptista",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Isochrysidales" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Isopoda" ~ "Malacostraca",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Isopoda" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Isopoda" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Isoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Isoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Isoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Jakobida" ~ "Jakobea",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Jakobida" ~ "Jakobea",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Jakobida" ~ "Excavata",
+                             TRUE               ~ Kingdom)) -> COI.step15
+
+COI.step15 %>% 
+  filter (Kingdom == "NA") %>%
+  filter (Phylum == "NA") %>% 
+  filter (Class == "NA") %>%
+  group_by(Order ) %>% 
+  tally() %>% View() 
+
+#Use this to check that there aren't other entries with the same class and have phylum assignes
+COI.step15 %>%
+  filter (Order == "Mecoptera") %>% View()
+
+COI.step15 %>% 
+  mutate(Class = case_when(Order == "Embioptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Embioptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Embioptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Julida" ~ "Diplopoda",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Julida" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Julida" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Kinetoplastida" ~ "Kinetoplastea",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Kinetoplastida" ~ "Euglenozoa",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Kinetoplastida" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Lepidoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Lepidoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Lepidoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Labyrinthulomycetes" ~ "Labyrinthulomycetes",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Labyrinthulomycetes" ~ "Heterokontophyta",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Labyrinthulomycetes" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Mantodea" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Mantodea" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Mantodea" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Order = case_when(Order == "Mantophasmatodea" ~ "Notoptera",
+                             TRUE               ~ Order)) %>%   
+  mutate(Class = case_when(Order == "Mantophasmatodea" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Mantophasmatodea" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Mantophasmatodea" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Lagenidiales" ~ "Oomycota",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Lagenidiales" ~ "Oomycota",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Lagenidiales" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Leptomitales" ~ "Oomycota",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Leptomitales" ~ "Oomycota",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Leptomitales" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Mecoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Mecoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Mecoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Malawimonadida" ~ "Malawimonadea",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Malawimonadida" ~ "Neolouka",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Malawimonadida" ~ "Protista",
+                             TRUE               ~ Kingdom)) -> COI.step16
+
+COI.step16 %>% 
+  filter (Kingdom == "NA") %>%
+  filter (Phylum == "NA") %>% 
+  filter (Class == "NA") %>%
+  group_by(Order ) %>% 
+  tally() %>% View() 
+
+#Use this to check that there aren't other entries with the same class and have phylum assignes
+COI.step16 %>%
+  filter (Order == "Phaeocystales") %>% View()
+
+
+
+COI.step16 %>% 
+  mutate(Class = case_when(Order == "Megaloptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Megaloptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Megaloptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Mortierellales" ~ "Mortierellomycetes",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Mortierellales" ~ "Mucoromycota",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Mortierellales" ~ "Fungi",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Mucorales" ~ "Mucoromycetes",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Mucorales" ~ "Mucoromycota",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Mucorales" ~ "Fungi",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Neuroptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Neuroptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Neuroptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Pavlovales" ~ "Pavlovophyceae",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Pavlovales" ~ "Haptophyta",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Pavlovales" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Notoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Notoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Notoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Odonata" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Odonata" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Odonata" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Peronosporales" ~ "Oomycetes",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Peronosporales" ~ "Oomycota",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Peronosporales" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Opiliones" ~ "Arachnida",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Opiliones" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Opiliones" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Orthoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Orthoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Orthoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Phaeocystales" ~ "Haptophyta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Phaeocystales" ~ "Haptista",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Phaeocystales" ~ "Protista",
+                             TRUE               ~ Kingdom)) -> COI.step17
+
+
+COI.step17 %>% 
+  filter (Kingdom == "NA") %>%
+  filter (Phylum == "NA") %>% 
+  filter (Class == "NA") %>%
+  group_by(Order ) %>% 
+  tally() %>% View() 
+
+#Use this to check that there aren't other entries with the same class and have phylum assignes
+COI.step17 %>%
+  filter (Order == "Trichoptera") %>% View()
+
+COI.step17 %>% 
+  mutate(Class = case_when(Order == "Phasmatodea" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Phasmatodea" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Phasmatodea" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Physariida" ~ "Eumycetozoa",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Physariida" ~ "Evosea",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Physariida" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Raphidioptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Raphidioptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Raphidioptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Phthiraptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Phthiraptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Phthiraptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Saprolegniales" ~ "Oomycetes",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Saprolegniales" ~ "Oomycota",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Saprolegniales" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Plecoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Plecoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Plecoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Protura" ~ "Ellipura",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Protura" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Protura" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Pythiales" ~ "Oomycetes",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Pythiales" ~ "Oomycota",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Pythiales" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Siphonaptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Siphonaptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Siphonaptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Psocoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Psocoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Psocoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Strepsiptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Strepsiptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Strepsiptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Thysanoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Thysanoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Thysanoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Class = case_when(Order == "Trichiida" ~ "Eumycetozoa",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Trichiida" ~ "Evosea",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Trichiida" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Class = case_when(Order == "Trichoptera" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Order == "Trichoptera" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Order == "Trichoptera" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) -> COI.step18
+
+COI.step18 %>% 
+  filter (Kingdom == "NA") %>%
+  filter (Phylum == "NA") %>% 
+  filter (Class == "NA") %>%
+  filter (Order == "NA") %>%
+  group_by(Family ) %>% 
+  tally() %>% View() 
+
+
+
+```
+Okay so... now all the K,P, and C are filled in when order is known... we now need to fix the family and order level assignments when they can be
+
+```{r}
+COI.step18 %>% 
+  filter (Kingdom == "NA") %>%
+  filter (Phylum == "NA") %>% 
+  filter (Class == "NA") %>%
+  filter (Order == "NA") %>%
+  group_by(Family ) %>% 
+  tally() %>% View() 
+
+#Use this to check that there aren't other entries with the same class and have phylum assignes
+COI.step18 %>%
+  filter (Family == "Malawimonadidae") %>% View()
+
+COI.step18 %>% 
+  mutate(Order = case_when(Family == "Actinoposthiidae" ~ "Acoela",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Actinoposthiidae" ~ "Turbellaria",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Actinoposthiidae" ~ "Xenacoelomorpha",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Actinoposthiidae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Apusomonadidae" ~ "Apusomonadida",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Apusomonadidae" ~ "Apusomonadea",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Apusomonadidae" ~ "Sulcozoa",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Apusomonadidae" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Dicyrtomidae" ~ "Symphypleona",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Dicyrtomidae" ~ "Collembola",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Dicyrtomidae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Dicyrtomidae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Order = case_when(Family == "Entomobryidae" ~ "Entomobryomorpha",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Entomobryidae" ~ "Collembola",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Entomobryidae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Entomobryidae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Histionidae" ~ "Jakobida",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Histionidae" ~ "Jakobea",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Histionidae" ~ "Jakobea",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Histionidae" ~ "Excavata",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Hypogastruridae" ~ "Collembola",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Hypogastruridae" ~ "Ellipura",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Hypogastruridae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Hypogastruridae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Isotomidae" ~ "Collembola",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Isotomidae" ~ "Ellipura",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Isotomidae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Isotomidae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Jakobidae" ~ "Jakobida",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Jakobidae" ~ "Jakobea",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Jakobidae" ~ "Jakobea",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Jakobidae" ~ "Excavata",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Katiannidae" ~ "Symphypleona",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Katiannidae" ~ "Collembola",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Katiannidae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Katiannidae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Lepidotrichidae" ~ "Zygentoma",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Lepidotrichidae" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Lepidotrichidae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Lepidotrichidae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Lepismatidae" ~ "Zygentoma",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Lepismatidae" ~ "Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Lepismatidae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Lepismatidae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Malawimonadidae" ~ "Malawimonadida",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Malawimonadidae" ~ "Malawimonadea",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Malawimonadidae" ~ "Neolouka",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Malawimonadidae" ~ "Protista",
+                             TRUE               ~ Kingdom)) -> COI.step19
+
+COI.step19 %>% 
+  filter (Kingdom == "NA") %>%
+  filter (Phylum == "NA") %>% 
+  filter (Class == "NA") %>%
+  filter (Order == "NA") %>%
+  group_by(Family ) %>% 
+  tally() %>% View() 
+
+#Use this to check that there aren't other entries with the same class and have phylum assignes
+COI.step19 %>%
+  filter (Family == "Tullbergiidae") %>% View()
+
+COI.step19 %>% 
+  mutate(Order = case_when(Family == "Neanuridae" ~ "Collembola",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Neanuridae" ~ "Ellipura",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Neanuridae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Neanuridae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Nicoletiidae" ~ "Zygentoma",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Nicoletiidae" ~ "	Insecta",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Nicoletiidae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Nicoletiidae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Odontellidae" ~ "Poduromorpha",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Odontellidae" ~ "Collembola",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Odontellidae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Odontellidae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Order = case_when(Family == "Onychiuridae" ~ "Collembola",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Onychiuridae" ~ "Ellipura",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Onychiuridae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Onychiuridae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Plasmodiophoridae" ~ "Plasmodiophorida",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Plasmodiophoridae" ~ "Phytomyxea",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Plasmodiophoridae" ~ "Endomyxa",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Plasmodiophoridae" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Poduridae" ~ "Collembola",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Poduridae" ~ "Ellipura",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Poduridae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Poduridae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Sminthuridae" ~ "Collembola",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Sminthuridae" ~ "Ellipura",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Sminthuridae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Sminthuridae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Sminthurididae" ~ "Collembola",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Sminthurididae" ~ "Ellipura",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Sminthurididae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Sminthurididae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Tomoceridae" ~ "Entomobryomorpha",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Tomoceridae" ~ "Collembola",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Tomoceridae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Tomoceridae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Tsukubamonadidae" ~ "Tsukubamonadida",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Tsukubamonadidae" ~ "Tsukubea ",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Tsukubamonadidae" ~ "Loukozoa",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Tsukubamonadidae" ~ "Excavata",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Order = case_when(Family == "Tullbergiidae" ~ "Poduromorpha",
+                             TRUE               ~ Order)) %>% 
+  mutate(Class = case_when(Family == "Tullbergiidae" ~ "Collembola",
+                             TRUE               ~ Class)) %>% 
+  mutate(Phylum = case_when(Family == "Tullbergiidae" ~ "Arthropoda",
+                             TRUE               ~ Phylum)) %>%   
+  mutate(Kingdom = case_when(Family == "Tullbergiidae" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) -> COI.step20
+
+COI.step20 %>% 
+  #filter (Kingdom == "NA") %>%
+  #filter (Phylum == "NA") %>% 
+  #filter (Class == "NA") %>%
+  #filter (Order == "NA") %>%
+  #filter (Family == "NA") %>%
+  group_by(Order) %>% 
+  tally() %>% View() 
+
+COI.step20 %>% filter (str_detect(Header, "unidentified"))  %>%  separate(Header, into = c("Accession", "Kingdom", "Phylum", "Class","Order", "Family", "Genus", "Species"), sep = ";", remove = F, extra= "drop")  -> Headers.to.drop.unidentified
+
+COI.step20 %>% 
+  anti_join(Headers.to.drop.unidentified, by = "Header")-> COI.step21
+
+```
+
+
+
+try to fill in taxonomy with insect - there are missing ranks in the worlds.taxonomy
 ```{r}
 library(insect)
 
@@ -395,7 +1068,7 @@ lineage <- tibble (taxid = all.taxids,
 ## Removing the gaps
 
 ```{r}
-COI.step12 %>% 
+COI.step21 %>% 
   mutate (Seq_updated = str_remove_all(Seq, "\\-")) %>% 
   mutate (seq_length = str_length(Seq),
           Seq_updated_lenght = str_length(Seq_updated),
@@ -411,15 +1084,30 @@ Nogaps.thanks %>%
 
 df.for.fasta <- ready.to.go %>% select(name,Seq_updated)
 
+#check to make sure there aren't duplicate sequences now that the gaps are removed
+distinct.seqs <- df.for.fasta %>% distinct(Seq_updated, .keep_all = TRUE)
+names(distinct.seqs)[2]<-'seq'
+
 ```
 
 
 # write.to fasta
 
 ```{r}
-library(seqinr)
-write.fasta(sequences = as.list (ready.to.go$Seq_updated),
-            names = as.list (ready.to.go$New_Header),
-            file.out = "COI_no_gaps_only_metazoa.fasta")
+writeFasta<-function(data, filename){
+  fastaLines = c()
+  for (rowNum in 1:nrow(data)){
+    fastaLines = c(fastaLines, as.character(paste(">", data[rowNum,"name"], sep = "")))
+    fastaLines = c(fastaLines,as.character(data[rowNum,"seq"]))
+  }
+  fileConn<-file(filename)
+  writeLines(fastaLines, fileConn)
+  close(fileConn)
+}
+
+
+writeFasta(distinct.seqs, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_curated_distinct_RefDB.fasta")
+
+
 ```
 
