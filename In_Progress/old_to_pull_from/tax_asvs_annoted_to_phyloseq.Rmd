@@ -7,11 +7,11 @@ output:
     toc: true
 params:
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run4_preliminary\COI
+    value: C:\Users\erdag\github\NextGenNEPA\Output\phyloseq_output\run4_rerun\MiMammal
   hashes.annotated:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run4_preliminary\COI\2021-10-26taxtable.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run4_rerun\MiX\2021-11-05taxtable.csv
   ASV: 
-   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run4_preliminary\COI_ASV_table.csv
+   value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run4_rerun\MiX_ASV_table.csv
   metadata:
       value: C:\Users\erdag\github\NextGenNEPA\Input\sequencing_metadata_files\master_sequencing_datasheet_20211026.csv
 ---
@@ -57,8 +57,8 @@ Select out the metadata for the correct run and locus of choice
 ```{r}
 metadata <- metadata[metadata$Sequencing.run == "4",]
 #metadata <- metadata[metadata$Locus == "MiFish",]
-#metadata <- metadata[metadata$Locus == "MiMammal",]
-metadata <- metadata[metadata$Locus == "COI",]
+metadata <- metadata[metadata$Locus == "MiMammal",]
+#metadata <- metadata[metadata$Locus == "COI",]
 ```
 
 
@@ -81,7 +81,7 @@ phylo <- make.phyloseq.obj(asv.mat, metadata, tax.mat)
 
 check that things are working with a barplot
 ```{r}
-plot_bar(phylo, fill = "phylum")
+plot_bar(phylo, fill = "class")
 ```
 
 filter out the bacteria and uncharacterized/no rank ASVs

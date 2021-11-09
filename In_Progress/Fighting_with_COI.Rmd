@@ -1,0 +1,425 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library (tidyverse)
+```
+
+### Get the COI sequences in CSV
+
+```{r}
+library("Biostrings")
+COI.fasta <- readDNAStringSet("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB_withtax_distinct.fasta")
+
+name = names(COI.fasta)
+seq = paste(COI.fasta)
+COI.fasta.df <- data.frame(name, seq)
+
+write.csv(COI.fasta.df, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB_withtax_distinct.csv", sep = ",")
+
+COI <- read_csv("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Combined_blast_wang_RefDB_withtax_distinct.csv", col_names = c("Unknown", "Header", "Seq")) %>% select(-Unknown) %>% slice(-1)
+
+
+```
+```{r}
+input <- readLines("/Users/ramon.gallegosimon/Projects/NextGenNEPA/annotation/Combined_blast_wang_RefDB_withtax_distinct.fasta")
+output <- file("/Users/ramon.gallegosimon/Projects/NextGenNEPA/annotation/Combined_blast_wang_RefDB_withtax_distinct.csv","w")
+currentSeq <- 0
+newLine <- 0
+for(i in 1:length(input)) {
+  if(strtrim(input[i], 1) == ">") {
+    if(currentSeq == 0) {
+      writeLines(paste(input[i],","), output, sep="")
+      currentSeq <- currentSeq + 1
+    } else {
+      writeLines(paste("\n",input[i],",", sep =""), output, sep="")
+    }
+  } else {
+    writeLines(paste(input[i]), output, sep="")
+  }
+}
+close(output)
+```
+
+## GAPS
+
+Calculate Gaps
+
+```{r}
+ COI <- COI %>% mutate(gaps = str_count(Seq, "\\-")) %>%  separate(Header, into = c("Accession", "Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = ";", remove = F, extra= "drop")
+```
+
+Create a list of things to throw away because they are environmental samples of no value
+
+```{r}
+COI %>% filter (str_detect(Header, "environmental sample"))  %>%  separate(Header, into = c("Accession", "Kingdom", "Phylum", "Class"), sep = ";", remove = F, extra= "drop")%>% filter (Phylum == "NA")  -> Headers.to.drop.env.sample
+
+COI %>% filter (str_detect(Header, "uncultured"))  %>%  separate(Header, into = c("Accession", "Kingdom", "Phylum", "Class"), sep = ";", remove = F, extra= "drop")%>% filter (Phylum == "NA")  -> Headers.to.drop.unclutured
+
+COI %>% filter(Phylum =="Proteobacteria" | Phylum =="Bacteroidetes" | Phylum =="Actinobacteria" | Phylum =="Cyanobacteria") -> Bacteria 
+
+COI %>% anti_join(Bacteria, by = "Header") -> COI.no.bac
+```
+
+Of the things without Kingom info, there are things that are actually Metazoans
+
+```{r}
+COI.no.bac %>% 
+  filter(Kingdom == "Metazoa") %>% 
+  distinct(Phylum) %>%
+  filter (Phylum != "NA") %>% pull(Phylum) -> Metazoa.phyla
+  
+```
+
+Replace Na for Metazoa
+
+```{r}
+COI.no.bac %>% 
+  mutate (Kingdom = case_when (Phylum %in% Metazoa.phyla ~ "Metazoa", 
+                               TRUE                      ~ Kingdom)) -> COI.step1
+
+COI.step1%>% 
+  anti_join(Headers.to.drop.env.sample, by = "Header")-> COI.step2
+
+
+
+COI.step2 %>% 
+  filter (Kingdom == "NA") %>% 
+  group_by(Phylum ) %>% 
+  tally() %>% View()
+
+
+```
+
+Keep only metazoans worth of our attention
+
+```{r}
+COI.step2 %>% filter (Kingdom == "Metazoa") -> Metazoans
+
+COI.step2 %>% filter (Kingdom == "NA") -> NA.Kingdom
+
+COI.step2 %>% 
+  mutate(Kingdom = case_when(Phylum == "Acanthocephala" ~ "Metazoa",
+                             TRUE                       ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Ctenophora" ~ "Metazoa",
+                             TRUE                   ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Brachiopoda" ~ "Metazoa",
+                             TRUE                    ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Entoprocta" ~ "Metazoa",
+                             TRUE                   ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Gnathostomulida" ~ "Metazoa",
+                             TRUE                       ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Hemichordata" ~ "Metazoa",
+                             TRUE                       ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Myzostomida" ~ "Metazoa",
+                             TRUE                       ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Priapulida" ~ "Metazoa",
+                             TRUE                       ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Rhombozoa" ~ "Metazoa",
+                             TRUE                       ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Xenacoelomorpha" ~ "Metazoa",
+                             TRUE                       ~ Kingdom)) -> COI.step3
+
+COI.step3 %>% 
+  filter (Kingdom == "NA") %>% 
+  group_by(Phylum ) %>% 
+  tally() %>% View()
+
+COI.step3 %>% 
+  mutate(Kingdom = case_when(Phylum == "Apicomplexa" ~ "Chromista",
+                             TRUE                    ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Bacillariophyta" ~ "Chromista",
+                             TRUE                        ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Cercozoa" ~ "Chromista",
+                             TRUE                 ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Ciliophora" ~ "Chromista",
+                             TRUE                   ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Endomyxa" ~ "Chromista",
+                             TRUE                 ~ Kingdom)) %>% 
+  mutate(Kingdom = case_when(Phylum == "Eustigmatophyceae" ~ "Chromista",
+                             TRUE                          ~ Kingdom)) %>% 
+  mutate(Kingdom = case_when(Phylum == "Imbricatea" ~ "Chromista",
+                             TRUE                          ~ Kingdom)) %>% 
+  mutate(Kingdom = case_when(Phylum == "Oomycota" ~ "Chromista",
+                             TRUE                          ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Phaeophyceae" ~ "Chromista",
+                             TRUE                          ~ Kingdom)) %>% 
+  mutate(Kingdom = case_when(Phylum == "Xanthophyceae" ~ "Chromista",
+                             TRUE                          ~ Kingdom)) -> COI.step4
+COI.step4 %>% 
+  filter (Kingdom == "NA") %>% 
+  group_by(Phylum ) %>% 
+  tally() %>% View()
+
+
+
+COI.step4 %>%
+  mutate(Kingdom = case_when(Phylum == "Discosea" ~ "Protista",
+                             TRUE                 ~ Kingdom)) %>%   
+  mutate(Kingdom = case_when(Phylum == "Evosea" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Kingdom = case_when(Phylum == "Haptista" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Kingdom = case_when(Phylum == "Rhodophyta" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Kingdom = case_when(Phylum == "Tubulinea" ~ "Protista",
+                             TRUE               ~ Kingdom)) -> COI.step5
+
+
+COI.step5 %>% 
+  filter (Kingdom == "NA") %>% 
+  group_by(Phylum ) %>% 
+  tally() %>% View()
+
+  
+COI.step5 %>%
+    mutate(Kingdom = case_when(Phylum == "Euglenozoa" ~ "Excavata",
+                             TRUE               ~ Kingdom)) %>% 
+    mutate(Kingdom = case_when(Phylum == "Heterolobosea" ~ "Excavata",
+                             TRUE               ~ Kingdom)) -> COI.step6 
+  
+  
+COI.step6 %>% 
+  mutate(Kingdom = case_when(Phylum == "Ascomycota" ~ "Fungi",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Kingdom = case_when(Phylum == "Basidiomycota" ~ "Fungi",
+                             TRUE               ~ Kingdom)) %>%  
+  mutate(Kingdom = case_when(Phylum == "Blastocladiomycota" ~ "Fungi",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Kingdom = case_when(Phylum == "Chytridiomycota" ~ "Fungi",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Kingdom = case_when(Phylum == "Monoblepharidomycota" ~ "Fungi",
+                             TRUE               ~ Kingdom)) -> COI.step7
+
+COI.step7 %>% 
+  filter (Kingdom == "NA") %>% 
+  group_by(Phylum ) %>% 
+  tally() %>% View() 
+
+COI.step7 %>% 
+  mutate(Kingdom = case_when(Phylum == "Chlorophyta" ~ "Viridiplantae",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Kingdom = case_when(Phylum == "Streptophyta" ~ "Viridiplantae",
+                             TRUE               ~ Kingdom)) -> COI.step8
+COI.step8 %>% 
+  filter (Kingdom == "NA") %>% 
+  group_by(Phylum ) %>% 
+  tally() %>% View()
+
+COI.step9 %>% filter (Kingdom == "NA") -> NA.Kingdom
+
+COI.step8%>% 
+  anti_join(Headers.to.drop.unclutured, by = "Header")-> COI.step9
+
+COI.step9 %>% filter (Kingdom == "NA") -> NA.Kingdom
+
+
+COI.step9 %>% filter (str_detect(Header, "Amoebozoa sp."))  %>%  separate(Header, into = c("Accession", "Kingdom", "Phylum", "Class"), sep = ";", remove = F, extra= "drop")%>% filter (Phylum == "NA")  -> Headers.to.drop.amoeba.sp
+
+COI.step9 %>% 
+  anti_join(Headers.to.drop.amoeba.sp, by = "Header")-> COI.step10
+
+COI.step10 %>% filter (Kingdom == "NA") -> NA.Kingdom
+```
+
+All fo the kingdom info is in there for phyla that had assignments, but there are still 71k 
+that have no phyla, even after removing uncultred bacterium ans such. 
+So now we have to do the same for the ones that have a class assignment and no phylum
+
+```{r}
+COI.step11 %>% 
+  filter (Kingdom == "NA") %>%
+  filter (Phylum == "NA") %>% 
+  group_by(Class ) %>% 
+  tally() %>% View() 
+
+#Use this to check that there aren't other entries with the same class and have phylum assignes
+COI.step10 %>%
+  filter (Class == "Heterotrichea") %>% View()
+  
+
+COI.step10 %>% 
+  mutate(Phylum = case_when(Class == "Bangiophyceae" ~ "Rhodophyta",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Bangiophyceae" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>%   
+  mutate(Phylum = case_when(Class == "Choanoflagellata" ~ "Choanozoa",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Choanoflagellata" ~ "Metazoa",
+                             TRUE               ~ Kingdom)) %>%
+  mutate(Phylum = case_when(Class == "Chrysophyceae" ~ "Ochrophyta",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Chrysophyceae" ~ "Chromista",                                                       TRUE               ~ Kingdom)) %>%
+  mutate(Phylum = case_when(Class == "Colpodea" ~ "Ciliophora",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Colpodea" ~ "Chromista",                                                            TRUE               ~ Kingdom)) %>%
+  mutate(Phylum = case_when(Class == "Compsopogonophyceae" ~ "Rhodophyta",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Compsopogonophyceae" ~ "Protista",                                                  TRUE               ~ Kingdom)) %>%
+  mutate(Phylum = case_when(Class == "Cryptophyceae" ~ "Cryptophyta",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Cryptophyceae" ~ "Chromista",                                                       TRUE               ~ Kingdom)) %>%
+  mutate(Phylum = case_when(Class == "Cryptophyta" ~ "Cryptophyta",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Cryptophyta" ~ "Chromista",                                                         TRUE               ~ Kingdom)) %>%
+  mutate(Phylum = case_when(Class == "Dictyochophyceae" ~ "Ochrophyta",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Dictyochophyceae" ~ "Chromista",                                                    TRUE               ~ Kingdom)) %>%
+  mutate(Phylum = case_when(Class == "Dinophyceae" ~ "Dinoflagellata",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Dinophyceae" ~ "Chromista",                                                         TRUE               ~ Kingdom)) -> COI.step11 
+
+
+COI.step11 %>% 
+  mutate(Phylum = case_when(Class == "Florideophyceae" ~ "Rhodophyta",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Florideophyceae" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>%   
+  mutate(Phylum = case_when(Class == "Eustigmatophyceae" ~ "Ochrophyta",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Eustigmatophyceae" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>%   
+  mutate(Phylum = case_when(Class == "Glaucocystophyceae" ~ "Glaucophyta",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Glaucocystophyceae" ~ "Archaeplastida",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Phylum = case_when(Class == "Heterolobosea" ~ "Percolozoa",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Heterolobosea" ~ "Excavata",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Phylum = case_when(Class == "Heterotrichea" ~ "Ciliophora",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Heterotrichea" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Phylum = case_when(Class == "Hyphochytriomycetes" ~ "Hyphochytriomycota",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Hyphochytriomycetes" ~ "Protista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Phylum = case_when(Class == "Nassophorea" ~ "Ciliophora",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Nassophorea" ~ "Chromista",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Phylum = case_when(Class == "Oligohymenophorea" ~ "Ciliophora",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Oligohymenophorea" ~ "Chromista",
+                             TRUE               ~ Kingdom)) -> COI.step12 
+
+COI.step12 %>% 
+  filter (Kingdom == "NA") %>%
+  filter (Phylum == "NA") %>% 
+  group_by(Class ) %>% 
+  tally() %>% View() 
+
+COI.step12 %>% 
+  mutate(Phylum = case_when(Class == "Phaeophyceae" ~ "",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Phaeophyceae" ~ "",
+                             TRUE               ~ Kingdom)) %>%   
+  mutate(Phylum = case_when(Class == "Raphidophyceae" ~ "",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Raphidophyceae" ~ "",
+                             TRUE               ~ Kingdom)) %>%   
+  mutate(Phylum = case_when(Class == "Spirotrichea" ~ "",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Spirotrichea" ~ "",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Phylum = case_when(Class == "Synurophyceae" ~ "",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Synurophyceae" ~ "",
+                             TRUE               ~ Kingdom)) %>% 
+  mutate(Phylum = case_when(Class == "Xanthophyceae" ~ "",
+                             TRUE               ~ Phylum)) %>% 
+  mutate(Kingdom = case_when(Class == "Xanthophyceae" ~ "",
+                             TRUE               ~ Kingdom)) -> COI.step13
+
+
+```
+
+try to fill in taxonomy with insect
+```{r}
+library(insect)
+
+insect::taxonomy() -> worlds.taxonomy
+
+NA.Kingdom -> lineage
+
+
+lineage %>% 
+  anti_join(worlds.taxonomy, by = c("Species" = "name")) -> MissingTax # these are the ones without match
+
+MissingTax %>% distinct(Species) %>%
+  pull()-> all.spec
+MissingTax %>% get_taxID(all.spec, worlds.taxonomy)
+
+
+lineage %>% 
+  inner_join(worlds.taxonomy, by = c("Species" = "name")) %>%  # these are the ones with a match
+  bind_rows(taxIDs %>% 
+              mutate(taxID = as.numeric(taxids)) %>% 
+              select(-taxids)) -> with.taxids # and we have joined them all in one table
+
+
+# Did it work
+
+with.taxids %>% 
+  filter (is.na(taxID)) %>% 
+  left_join(lineage)
+
+with.taxids %>% distinct(taxID) %>%
+  pull()-> all.taxids
+all.taxids <- map(all.taxids, as.numeric)
+
+
+insect::get_lineage(all.taxids, worlds.taxonomy) -> all.taxonomy  
+
+lineage <- tibble (taxid = all.taxids,
+                         taxonomy = all.taxonomy) %>%
+  mutate (Kingdom = map_chr(taxonomy, ~.x["kingdom"]),
+          Phylum = map_chr(taxonomy, ~.x["phylum"]),
+          Class = map_chr(taxonomy, ~.x["class"]),
+          Order = map_chr(taxonomy, ~.x["order"]),
+          Family= map_chr(taxonomy, ~.x["family"]),
+          Genus = map_chr(taxonomy, ~.x["genus"]),
+          Species = map_chr(taxonomy, ~.x["species"]))
+
+```
+
+
+
+## Removing the gaps
+
+```{r}
+COI.step12 %>% 
+  mutate (Seq_updated = str_remove_all(Seq, "\\-")) %>% 
+  mutate (seq_length = str_length(Seq),
+          Seq_updated_lenght = str_length(Seq_updated),
+          New_gaps = str_count(Seq_updated, "\\-")) -> Nogaps.thanks
+```
+
+
+## Update the header to include the new Kingom info
+
+```{r}
+Nogaps.thanks %>% 
+  unite (Accession, Kingdom, Phylum, Class, Order, Family, Genus, Species, sep = ";", col = "name") -> ready.to.go
+
+df.for.fasta <- ready.to.go %>% select(name,Seq_updated)
+
+```
+
+
+# write.to fasta
+
+```{r}
+library(seqinr)
+write.fasta(sequences = as.list (ready.to.go$Seq_updated),
+            names = as.list (ready.to.go$New_Header),
+            file.out = "COI_no_gaps_only_metazoa.fasta")
+```
+

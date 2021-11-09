@@ -312,7 +312,7 @@ write_rds(new.classifier, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/
 
 need to check that the subset will classify the input subest as it should
 ```{r}
-tree <- read_rds("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_build_test.rds")
+tree <- read_rds("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Test_COI_classifier.rds")
 clasif.subset <- classify (x = sub.db, tree = tree, cores = 4)
 ```
 
