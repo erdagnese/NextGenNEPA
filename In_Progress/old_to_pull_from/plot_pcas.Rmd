@@ -21,8 +21,8 @@ library(reshape2)
 library(ggplot2)
 library(RColorBrewer)
 
-metadata <- read.csv(here("Input","sequencing_metadata_files","master_sequencing_datasheet20211018_newtechreps.csv"), header = TRUE)
-asvs <- read.csv(here("Output","dada2_output_files","2021-10-18MiX.merged.ASV.table.csv"))
+metadata <- read.csv(here("Input","sequencing_metadata_files","master_sequencing_datasheet20211105.csv"), header = TRUE)
+asvs <- read.csv(here("Output","dada2_output_files","run4_rerun", "MiX_ASV_table.csv"))
 ```
 
 ## Format ASV tables (raw/index) to be used for PCAs and adonis -- and without Barnes for both
@@ -32,10 +32,10 @@ asvs <- read.csv(here("Output","dada2_output_files","2021-10-18MiX.merged.ASV.ta
 ### Clean up the ASV table of raw reads 
 
 # first only select metadata corresponding to samples
-asvs <- asvs[asvs$Locus == "MiFish" ,]
-metadata <-  metadata[metadata$Sample_name %in% asvs$Sample_name,]
+asvs <- asvs[asvs$Locus == "MiMammal" ,]
+metadata <-  metadata[metadata$Sample_ID %in% asvs$Sample_name,]
 
-intersect(unique(metadata$Sample_name), unique(asvs$Sample_name))
+intersect(unique(metadata$Sample_ID), unique(asvs$Sample_name))
 
 # translate ASVs into table that has ASVs as rows and samples as columns 
 asv_mat <-  pivot_wider(asvs, names_from = Sample_name, values_from = nReads) 
@@ -52,10 +52,8 @@ asv_mat[is.na(asv_mat)] <- 0 # change NAs to 0s
 #metadata <- metadata[metadata$Sample_name %in% colnames(asv_mat),] # remove kangaroo
 
 metadata <- metadata[metadata$Type != "kangaroo",]
-asv_mat <-  asv_mat[, -69]
-asv_mat <-  asv_mat[, -42]
+asv_mat <-  asv_mat[,colnames(asv_mat) %in% metadata$Sample_ID]
 
-metadata <-  metadata[metadata$Sample_name %in% colnames(asv_mat),]
 ```
 
 
@@ -88,13 +86,22 @@ raw.pca.to.plot <- cbind(metadata, pca.raw.bc.MDS1, pca.raw.bc.MDS2, pca.raw.jac
 ### PCA plots 
 
 ```{r PCA plots}
+nmds.plot.dune+
+  geom_segment(data = sig.spp.scrs, aes(x = 0, xend=NMDS1, y=0, yend=NMDS2), arrow = arrow(length = unit(0.25, "cm")), colour = "grey10", lwd=0.3) + #add vector arrows of significant species
+  ggrepel::geom_text_repel(data = sig.spp.scrs, aes(x=NMDS1, y=NMDS2, label = Species), cex = 3, direction = "both", segment.size = 0.25)+ #add labels for species, use ggrepel::geom_text_repel so that labels do not overlap
+  labs(title = "Ordination with species vectors")
+
+plot(pca.raw.bc.nmds, type = "n") #displays empty ordination space
+points(pca.raw.bc.nmds, display = "sites", pch = c(16, 8, 17) [as.numeric(metadata$Month.year)], col = c("blue", "green", "red", "orange", "black") [as.numeric(metadata$Creek)])
+
+legend("topright", legend = c(levels(dune.env$Management), levels(dune.env$Use)), pch = c(16, 8, 17, 11, 16, 16, 16), col = c("black","black","black","black","blue", "orange", "black"), bty = "n", cex = 1) # displays symbol and colour legend
 
 # raw reads / bray curtis
 ggplot(raw.pca.to.plot, aes(x=pca.raw.bc.MDS1, y=pca.raw.bc.MDS2)) +
   geom_point(size=4, aes(color=factor(Creek), shape=factor(Month.year))) +
   theme_bw() +
   labs(x="PC1",y="PC2", color="Creek") +
-  ggtitle('COI - Raw Reads - Bray Curtis')
+  ggtitle('MiMammal - Run 4 - Raw Reads - Bray Curtis')
 # ggsave("/Users/elizabethandruszkiewicz/GoogleDrive/UW/Bioinformatics/test_ramon/PCA_raw_bc_COI.jpg", units="in", width=5, height=4, dpi=300)
 
 # raw reads / jaccard
