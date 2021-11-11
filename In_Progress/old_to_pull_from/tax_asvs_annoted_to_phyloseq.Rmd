@@ -89,12 +89,12 @@ filter out the bacteria and uncharacterized/no rank ASVs
 phylo_clean <- subset_taxa(phylo, !is.na(kingdom) & !kingdom %in% c("","no rank", "uncharacterized"))
 ASV_clean <- as.data.frame(otu_table(phylo_clean))
 
-write.csv(ASV_clean,file=paste0(Sys.Date(),".ASV.cleaned.csv"))
+#write.csv(ASV_clean,file=paste0(Sys.Date(),".ASV.cleaned.csv"))
 ```
 
 check again to make sure they were removed
 ```{r}
-plot_bar(phylo_clean, fill = "family")
+plot_bar(phylo_clean, fill = "class")
 ```
 
 
@@ -109,7 +109,7 @@ taxon_glom <- tax_glom(phylo_clean, taxrank = "taxon")
 making the ASV table with taxonomy rather than hashes including taxa that are uncharacterised
 ```{r}
 ##make a temporary phyloseq object so we don't alter the full original one
-tmp.phylo <- phylo
+tmp.phylo <- phylo_clean
 hash.id <- taxa_names(phylo)
 # this changes the header from the actual sequence to Seq_001, Seq_002 etc
 taxa_names(tmp.phylo)
@@ -137,15 +137,15 @@ names(tmp)[i] = paste(wholetax[i], tmp[i], sep = "__")
 }
 #generate a mapping dataframe with the Seq_number and hash ids to keep 
 map.ASV <- data.frame(hash.id, tmp)
-write.csv(map.ASV,file=paste0(Sys.Date(),".map.ASV.hash.to.taxa.csv"))
+write.csv(map.ASV,file=paste0(Sys.Date(),".map.ASVclean.hash.to.taxa.csv"))
 
 # overwrite old row names
 row.names(ASV1) <- names(tmp)
 head(ASV1)
 
 
-saveRDS(ASV1, file=paste0(Sys.Date(),".ASV.with.taxa.rds"))
-write.csv(ASV1, file=paste0(Sys.Date(),".ASV.with.taxa.csv"))
+saveRDS(ASV1, file=paste0(Sys.Date(),".ASVclean.with.taxa.rds"))
+write.csv(ASV1, file=paste0(Sys.Date(),".ASVclean.with.taxa.csv"))
 ```
 
 Making an agglomerated OTU table with counts by taxon as above
@@ -189,4 +189,17 @@ saveRDS(OTU1, file=paste0(Sys.Date(),".OTU.taxon.with.taxa.rds"))
 write.csv(OTU1, file=paste0(Sys.Date(),".OTU.taxonASV.with.taxa.csv"))
 ```
 
+Looking at the tech reps
+```{r}
+tech.phylo <- subset_samples(phylo, Type=="tech_rep")
+
+plot_bar(tech.phylo, fill = "class")
+
+tech.phylo.clean <- subset_taxa(tech.phylo, !is.na(kingdom) & !kingdom %in% c("","no rank", "uncharacterized"))
+
+plot_bar(tech.phylo.clean, fill= "family")
+
+
+
+```
 
