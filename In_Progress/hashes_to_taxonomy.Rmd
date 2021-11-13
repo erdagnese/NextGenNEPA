@@ -7,13 +7,13 @@ output:
     toc: true
 params: 
   folder:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run4_rerun\COI_old_classifier 
+    value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run4_rerun\COI_blast_classifier 
   Hash_key:
-    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run4_rerun\COI_hash_key.csv
+    value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\runs1_2_3_coi_hash_key.csv
   ASVs: 
     value: C:\Users\erdag\github\NextGenNEPA\Output\dada2_output_files\run4_rerun\COI_ASV_table.csv
   classifier:
-    value: C:\Users\erdag\NextGenNEPA_local\classifiers\classification.tree.coi.leray.v5.rds
+    value: C:\Users\erdag\NextGenNEPA_local\classifiers\COI_classifier.rds
   previous_effort: 
     value: C:\Users\erdag\github\NextGenNEPA\Output\hashes_to_taxonomy_output\run3\COI\2021-10-18hashes.annotated.rds
  
@@ -43,7 +43,7 @@ ALL.ASVs <- read_csv(params$ASVs)
 tree.2   <- read_rds(params$classifier)
 
 #bringing in the previous annotated run to start from and add to
-previous.effort <- read_rds(params$previous_effort)
+#previous.effort <- read_rds(params$previous_effort)
 ```
 
 So these sequences are in the same direction, and they have some shared and some new sequences. 
@@ -55,8 +55,8 @@ Make them into a DNAbin object for insect
 
 ```{r make it into a DNA object}
 new.set <- anti_join(Hash, previous.effort, by = c("Hash" = "representative"))
-all.hashes.insect <- char2dna(new.set$Sequence)
-names (all.hashes.insect) <- new.set$Hash
+all.hashes.insect <- char2dna(Hash$Sequence)
+names (all.hashes.insect) <- Hash$Hash
 all.hashes.insect
 ```
 
@@ -65,6 +65,8 @@ classify all sequences in our bin file
 
 ```{r classify}
 clasif.hashes <- classify (x = all.hashes.insect, tree = tree.2, cores = 4)
+
+names(clasif.hashes) <- c('representative', 'taxID', 'taxon', 'rank', 'score', 'accession', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
 
 clasif.hashes %>% 
   unite (family, genus, species, sep = "|", col = "taxa")
@@ -86,6 +88,10 @@ clasif.hashes %>%
 saveRDS(clasif.hashes, paste0("hashes.annotated", ".rds"))
 clasif.hashes <- readRDS("hashes.annotated.rds")
 write.csv(clasif.hashes, "hashes.annotated.csv")
+
+clasif.hashes %>% 
+  filter (taxID != "1") %>%
+  tally() %>% View() 
 
 ```
 
