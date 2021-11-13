@@ -1111,3 +1111,86 @@ writeFasta(distinct.seqs, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/
 
 ```
 
+Make one with just the Metazoans
+```{r}
+library("Biostrings")
+distinct.COI.fasta <- readDNAStringSet("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_curated_distinct_RefDB.fasta")
+
+name = names(distinct.COI.fasta)
+seq = paste(distinct.COI.fasta)
+COI.fasta.df <- data.frame(name, seq)
+
+COI.fasta.df %>% separate(name, into = c("Accession", "Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = ";", remove = F, extra= "drop") -> COI.full.df
+
+COI.full.df %>% 
+  filter(Kingdom == "Metazoa") -> Metazoa.phyla
+
+Metazoa.fasta <- Metazoa.phyla %>% select(name,seq)
+
+writeFasta(Metazoa.fasta, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Metazoan_COI_curated_distinct_RefDB.fasta")
+
+```
+
+
+
+Make one with just our Blast results
+```{r}
+#going to use the COI.full.df made in the previous chunk
+
+blast.coi <- readDNAStringSet("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/COI_blast_distinctseqs_RefDB.fasta")
+
+header = names(blast.coi)
+seq = paste(blast.coi)
+blast.coi.df <- data.frame(header, seq)
+
+blast.coi.df %>% separate(header, into = c("Accession", "Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = ";", remove = F, extra= "drop") -> Blast.df
+
+Blast.df %>% 
+  mutate (Seq_updated = str_remove_all(seq, "\\-")) %>% 
+  mutate (seq_length = str_length(seq),
+          Seq_updated_lenght = str_length(Seq_updated),
+          New_gaps = str_count(Seq_updated, "\\-")) -> Blast.Nogaps.thanks
+
+Blast.Nogaps.thanks %>% select(header, Accession, Seq_updated) -> Blast.nogaps
+
+COI.full.df %>% inner_join(Blast.nogaps, by = c("seq" = "Seq_updated")) -> Blast.only
+
+Blasta.distinct.seqs <- Blast.only %>% distinct(seq, .keep_all = TRUE)
+
+Blasta.distinct.seqs %>% select(name,seq) -> Blast.only.fasta
+
+writeFasta(Blast.only.fasta, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Blast_curated_distinct_RefDB.fasta")
+
+```
+
+
+make one with just Owen's seqs
+```{r}
+wang.fasta <- readDNAStringSet("/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Wangensteen_RF_DB.fasta")
+
+header = names(wang.fasta)
+seq = paste(wang.fasta)
+wang.fasta.df <- data.frame(header, seq)
+
+wang.fasta.df %>% separate(header, into = c("Accession", "Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = ";", remove = F, extra= "drop") -> Wang.df
+
+Wang.df %>% 
+  mutate (Seq_updated = str_remove_all(seq, "\\-")) %>% 
+  mutate (seq_length = str_length(seq),
+          Seq_updated_lenght = str_length(Seq_updated),
+          New_gaps = str_count(Seq_updated, "\\-")) -> Wang.Nogaps.thanks
+
+
+COI.full.df %>% inner_join(Wang.Nogaps.thanks, by = c("seq" = "Seq_updated")) -> Wang.only
+
+Wang.distinct.seqs <- Wang.only %>% distinct(seq, .keep_all = TRUE)
+
+Wang.distinct.seqs %>% select(name,seq) -> Wang.only.fasta
+
+
+writeFasta(Wang.only.fasta, "/Users/erdag/NextGenNEPA_local/classifiers/COI_build/Wang_curated_distinct_RefDB.fasta")
+
+
+```
+
+
